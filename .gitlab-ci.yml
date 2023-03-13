@@ -1,0 +1,18 @@
+pages:
+  stage: deploy
+  image: node:14.18.0
+  script:
+    - yarn config set registry https://registry.npmmirror.com
+    - yarn --check-files
+    - yarn build
+    - mkdir .public
+    - cp -r build/* .public
+    - mv .public public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+  cache:
+    paths:
+      - node_modules
