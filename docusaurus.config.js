@@ -60,7 +60,7 @@ const config = {
           },
           { to: '/update', label: '↑版本升级', position: 'right' },
           {
-            href: 'xxx',
+            href: 'https://github.com/yunke-yunfly/doc.github.io',
             label: 'GitHub',
             position: 'right',
           },
@@ -78,11 +78,11 @@ const config = {
               },
               {
                 label: '插件',
-                to: '/docs/basic-function/plugin',
+                to: '/docs/introduction/introduce',
               },
               {
                 label: '多进程模型',
-                to: '/docs/high-function/multi-progress',
+                to: '/docs/introduction/introduce',
               }
             ],
           },
@@ -106,10 +106,6 @@ const config = {
           {
             title: '更多',
             items: [
-              {
-                label: 'xxx',
-                href: 'xxx',
-              },
               {
                 label: '掘金社区',
                 href: 'https://juejin.cn/user/1821238205358616',
