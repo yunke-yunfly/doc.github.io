@@ -9,7 +9,7 @@ const config = {
   title: 'Yunfly',
   tagline: 'Node.js WEB 框架',
   url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/yunfly/',
+  baseUrl: '/doc.github.io/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
