@@ -1,0 +1,41 @@
+---
+sidebar_position: 1
+---
+
+# 环境准备
+
+## Node.js 版本
+
+`Node.js >= 12.17.0`, 推荐使用 `node@14+`
+
+## 环境变量
+
+| NODE_ENV | RUNTIME_ENV | 说明 |
+| ------ | ------ |------ |
+| dev | local | 本地开发环境 |
+| production | test | 测试环境 |
+| production | release | 预发布环境 |
+| production | prod | 生产环境 |
+
+备注：
+
+> - `NODE_ENV` 只区分开发生产环境，主要用来区分本地环境与部署环境
+> - `RUNTIME_ENV` 运行时环境, 主要用于不同环境的逻辑区分
+
+:::info 备注：
+
+可以在 `scripts run` 命令中设置 `RUNTIME_ENV` 环境变量来满足自己的业务需求。
+
+:::
+
+- 例如：
+
+1. run 命令
+
+```ts title="package.json"
+{
+    "scripts":{
+        "run": "cross-env PORT=3000 NODE_ENV=production RUNTIME_ENV=test yunfly",
+    }
+}
+```
