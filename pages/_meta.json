@@ -1,0 +1,28 @@
+{
+  "index": {
+    "title": "首页",
+    "type": "page",
+    "display": "hidden"
+  },
+  "document": {
+    "title": "文档",
+    "type": "page"
+  },
+  "config": {
+    "title": "配置",
+    "type": "page"
+  },
+  "updatelog": {
+    "title": "更新日志",
+    "type": "page",
+    "href": "https://github.com/yunke-yunfly/yunflyjs/blob/master/CHANGELOG.md",
+    "newWindow": true
+  },
+  "faq": {
+    "title": "FAQ",
+    "type": "page",
+    "theme": {
+      "toc": true
+    }
+  }
+}
