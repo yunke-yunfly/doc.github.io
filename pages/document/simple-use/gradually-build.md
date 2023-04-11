@@ -1,16 +1,13 @@
----
-sidebar_position: 3
----
-
 # 逐步搭建
 
 - 一步一步逐步搭建
 
-## 设置 npm 镜像源
+## 设置淘宝镜像源
 
-```js
+```shell
 // npm
 npm config set registry https://registry.npmmirror.com
+
 // yarn
 yarn config set registry https://registry.npmmirror.com
 ```
@@ -19,11 +16,16 @@ yarn config set registry https://registry.npmmirror.com
 
 ### 初始化下目录结构
 
-```js
+```shell
+// 创建目录
 mkdir yunfly-example
 cd yunfly-example
+
+// 初始化 package.json
 yarn init
-yarn add yunfly
+
+// 安装依赖
+yarn add @yunflyjs/yunfly
 yarn add cross-env typescript tsconfig-paths gts --dev
 ```
 
@@ -31,7 +33,7 @@ yarn add cross-env typescript tsconfig-paths gts --dev
 
 - `package.json` 中添加 `npm scripts` 脚本
 
-```js title="package.json"
+```js filename="package.json"
 {
     "scripts": {
         "dev": "cross-env NODE_ENV=dev PORT=3000 yunfly",
@@ -46,7 +48,7 @@ yarn add cross-env typescript tsconfig-paths gts --dev
 
 ### 配置 tsconfig.json
 
-```json title="tsconfig.json"
+```json filename="tsconfig.json"
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
@@ -60,7 +62,7 @@ yarn add cross-env typescript tsconfig-paths gts --dev
     "moduleResolution": "node",
     "strictPropertyInitialization": false,
     "module": "commonjs",
-    "target": "es2017",
+    "target": "esnext",
     "sourceMap": false
   },
   "include": [
@@ -74,7 +76,7 @@ yarn add cross-env typescript tsconfig-paths gts --dev
 
 ## 编写 Controller
 
-```ts title="src/controller/ExampleController.ts"
+```ts filename="src/controller/ExampleController.ts"
 import { Get, JsonController, BodyParam, Post, QueryParam } from 'yunfly';
 /**
  * 测试案例controller
@@ -115,7 +117,7 @@ export default class ExampleController {
 
 ## 配置 Config
 
-```ts title="src/config/config.default.ts"
+```ts filename="src/config/config.default.ts"
 
 /**
  * This is an env aggregation default config.
@@ -167,11 +169,23 @@ yunfly-example
 
 ## 运行项目
 
-```js
-// 运行
+```shell
 yarn dev
-// 监听模式运行 
 yarn watch:dev
+```
 
-// open: http://127.0.0.1:3000/example/simple/get?name=xiaoming
+- 访问应用
+
+```shell
+http://127.0.0.1:3000/example/simple/get?name=xxx
+```
+
+## 生产编译
+
+```shell
+// 编译
+yarn build
+
+// 运行
+yarn run run
 ```
