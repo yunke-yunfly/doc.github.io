@@ -1,3 +1,10 @@
 {
-  "directory-struct": "目录结构"
+  "directory-struct": "目录结构",
+  "config-configure": "Config 配置",
+  "plugin-config": "插件配置",
+  "middleware-config": "中间件配置",
+  "controller": "控制器(Controller)",
+  "middleware": "中间件(Middleware)",
+  "service": "服务(service)",
+  "logger": "日志"
 }

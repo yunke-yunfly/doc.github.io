@@ -1,0 +1,140 @@
+# 服务(service)
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="default">
+  `Service` 主要用于逻辑处理, `RPC`, `HTTP`接口聚合等能力。
+</Callout>
+
+- 常规案例介绍
+
+## 简单逻辑处理
+
+- 逻辑
+
+```ts filename="src/service/ExampleService.ts"
+import { Service } from '@yunflyjs/yunfly';
+
+@Service()
+export default class ExampleService {
+  
+  /**
+  * 简单逻辑计算
+  *
+  * @memberof ExampleService
+  */
+  sum (request: {a: number, b: number}): number {
+    return a + b;
+  }
+
+}
+```
+
+- 使用
+
+```ts filename="src/controller/ExampleController.ts" {2,6,13}
+import { JsonController, Inject, Get, QueryParam } from "@yunflyjs/yunfly";
+import { ExampleService } from "../service/ExampleService";
+
+@JsonController('/example')
+export class ExampleController {
+  @Inject() private exampleService: ExampleService;
+
+  @Get('/sum')
+  sum (
+    @QueryParam('a') a: number,
+    @QueryParam('b') b: number,
+  ) {
+    return this.exampleService.sum({ a, b });
+  }
+}
+```
+
+## 请求 HTTP 接口
+
+- 逻辑
+
+```ts filename="src/service/ExampleService.ts"
+import { Service } from '@yunflyjs/yunfly';
+
+@Service()
+export default class ExampleService {
+  
+  /**
+  * 发起 HTTP 请求
+  *
+  * @memberof ExampleService
+  */
+  async getDataFromAxios(): Promise<string> {
+    try {
+      const url = 'https://xxx.com/api/get-some-thing'
+      const res = await axios.get(url);
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  }
+}
+```
+
+- 使用
+
+```ts filename="src/controller/ExampleController.ts" {2,6,10}
+import { JsonController, Inject, Get, QueryParam } from "@yunflyjs/yunfly";
+import { ExampleService } from "../service/ExampleService";
+
+@JsonController('/example')
+export class ExampleController {
+  @Inject() private exampleService: ExampleService;
+
+  @Get('/get-data-from-axios')
+  async getDataFromAxios () {
+    return await this.exampleService.getDataFromAxios();
+  }
+}
+```
+
+## 请求 RPC 接口
+
+- 逻辑
+
+```ts filename="src/service/ExampleService.ts"
+import { Service } from '@yunflyjs/yunfly';
+import { MetaData } from '../../types/common.type';
+import { exampleServiceV2 } from '../../grpc-code-gen/yued/grpc-server-example/example/ExampleService';
+
+@Service()
+export default class ExampleService {
+  
+  async doSomething(request: {name: string;age:number}): Promise<any> {
+    const { error, response }: any = await exampleServiceV2.DoSomething({
+      request
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return response;
+  }
+}
+```
+
+- 使用
+
+```ts filename="src/controller/ExampleController.ts" {2,6,12}
+import { JsonController, Inject, Get, QueryParams } from "@yunflyjs/yunfly";
+import { ExampleService } from "../service/ExampleService";
+
+@JsonController('/example')
+export class ExampleController {
+  @Inject() private exampleService: ExampleService;
+
+  @Get('/get-data-from-axios')
+  async DoSomething (
+    @QueryParams() params: {name: string;age:number}
+  ) {
+    return await this.exampleService.DoSomething({ request: params });
+  }
+}
+```

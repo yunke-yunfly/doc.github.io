@@ -1,0 +1,26 @@
+# 中间件配置
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="default">
+  提示：推荐使用插件模型。
+</Callout>
+
+中间件配置核心是为了直接运行 `koa` 中间件而存在的产物。
+
+`src/config` 下新增 `config.middleware.ts` 文件。
+
+## 中间件案例
+
+定义一个全局中间件，设置 `ctx.name = 'zane'`，这样每个请求都会带上 `name` 参数
+
+```ts filename="src/config/config.middleware.ts" {4-7}
+import { KoaApp, Config } from '@yunflyjs/yunfly'
+export default function KoaMiddleware(app: KoaApp, config: Config) {
+  // 挂载中间件
+  app.use(async (ctx: any, next: any) => {
+    ctx.name = 'zane'
+    await next()
+  })
+}
+```
