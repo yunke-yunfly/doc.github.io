@@ -1,0 +1,544 @@
+# 异常处理
+
+框架异常处理统一由 `@yunflyjs/yunfly-plugin-error` 插件进行处理。内置通用处理逻辑，你也可以定制自己的异常处理逻辑。
+
+## 使用
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="default">
+  `@yunflyjs/yunfly`已内置 `error` 插件。
+</Callout>
+- 配置 `config.error` 项
+
+```ts filename="src/config/config.default.ts"
+import {Context,customErrorHandle} from '@yunflyjs/yunfly';
+import { ValidationError } from 'class-validator';
+
+/**
+ * error handle
+ */
+config.error = {
+    enable: true,
+
+    // use yunfly default error log.
+    useYunflyLog: true,
+
+    /**
+     * 错误码
+     * Type: number | true | Record<Key, Key>
+     */
+    errCode: true,
+
+    // 是否开启 HTTP 状态码
+    enableHttpCode: false,
+
+    // 是否返回 rpc 错误信息
+    useRpcErrorMessage: true,
+
+    // 是否返回错误详情
+    showMessageDetail: true,
+
+    /* Customize your error fn. （Optional） */
+    // customError: async (err: any, ctx: Context) => {}
+
+    unhandledRejection: (err: any) => {
+        console.error('UnhandledRejection error, at time', Date.now(), 'reason:', err);
+    },
+    uncaughtException: (err: any) => {
+        console.error('uncaughtException error, at time', Date.now(), 'reason:', err);
+    },
+
+    // 用于重新组装error信息，处理class-validator错误，并且不影响其他错误
+    customErrorHandle,
+};
+```
+
+| 字段| 类型    | 默认值  | 必填    | 说明     |
+| ---------- | -------- | ------- | --------- | ------- |
+| enable             | `boolean`                             | `true`  | 是  | 是否开启错误处理      |
+| errCode            | `number/true/Record<Key, Key>`    | `2`     | 否      | 错误码              |
+| useYunflyLog       | `boolean`                             | `true`  | 否  | 是否开启日志记录      |
+| enableHttpCode     | `boolean`                             | `false` | 否  | 是否开启 HTTP 状态码  |
+| useRpcErrorMessage | `boolean`                             | `true`  | 否  | 是否返回 rpc 错误信息  |
+| showMessageDetail  | `boolean`                             | `false` | 否  | 是否返回错误详情   |
+| customError        | `(err: any, ctx: Koa.Context) => any` |         | 否  | 自定义错误，若定义，则不会执行`yunfly-plugin-error`中间件后续逻辑  |
+| customErrorHandle  | `(err: any, ctx: Koa.Context) => any` |         | 否  | 可用于重新组装错误，并不影响`yunfly-plugin-error`中间件后续逻辑的执行  |
+| unhandledRejection | `(err: any, ctx: Koa.Context) => any` |         | 否  | 自定义 Promise 错误   |
+| uncaughtException  | `(err: any, ctx: Koa.Context) => any` |         | 否  | 自定义未能捕获的异常  |
+
+## 参数说明
+
+### errorCode
+
+不同的错误类，有不同的错误码，但为了满足不同用户场景以及向后兼容，为此我们做了如下的处理：
+
+1、当 errorCode 为**数字**时：那么错误码一直就是这个数字
+
+```javascript filename="src/config/config.default.ts" {5}
+// 配置
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  errorCode: 2, // 则返回 code 一直为 2
+}
+```
+
+```javascript
+// 无论什么错误，code 都为 2
+ctx.body = {
+  code: 2,
+  msg: string,
+}
+```
+
+2、当 errorCode 为**带 \* 对象**时（改造中）： `{ "*": 2, 401: 401 }` 代表 401 错误码，返回 401，其他返回 2
+
+```javascript filename="src/config/config.default.ts" {5-8}
+// 配置
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  errorCode: {
+    401: 401, // 遇到 401 错误，code 码值为 401
+    '*': 2, // 其他情况为 2
+  },
+}
+```
+
+```javascript
+// 抛错
+import { UnauthorizedError } from '@yunflyjs/yunfly'
+
+throw new UnauthorizedError('jwt token验证失败!')
+```
+
+```javascript
+// 返回结果
+ctx.body = {
+  code: 401,
+  msg: 'jwt token验证失败!',
+}
+```
+
+3、当 errorCode 为**不带 \* 的对象**时（改造完成后的特殊处理，常用于 rpc 错误码映射）：`{ 2000210: 401}` 代表如果遇到错误码为 2000210，则返回 401，其他情况下返回原错误码。
+
+```javascript filename="src/config/config.default.ts" {5-7}
+// 配置
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  errorCode: {
+    2000210: 401, // 遇到 2000210 错误码时，返回 401
+  },
+}
+```
+
+```javascript
+// 抛错
+import { RpcError } from '@yunflyjs/yunfly'
+
+const { error, response } = await this.userService.getUserInfo({request})
+
+if (error) {
+  // 假定这个 error 的状态码是 2000210，表示用户未登录，我们映射到前端就是 401
+  throw new RpcError(error)
+}
+```
+
+4、当 errorCode 为 **true** 时，则代表所有的错误码为原错误码，不做任何映射，如果是 throw 的普通 Error，默认值依然是 `2`。
+
+```javascript filename="src/config/config.default.ts" {5}
+// 配置
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  errorCode: true, // 一直采用 Error 类的 code，如果是 Error 类中没有 code，则返回 2
+}
+```
+
+```javascript
+import { BadRequestError } from '@yunflyjs/yunfly'
+
+throw new BadRequestError('用户名不为空')
+```
+
+```javascript
+{
+  code: 400,
+  msg: "用户名不为空"
+}
+```
+
+### customError
+
+我们可以通过实现 `customError` 方法，从而实现错误的自定义处理
+
+```typescript filename="src/config/config.default.ts" {4-11}
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  customError: async (err: any, ctx: Context) => {
+    const message =
+      typeof err === 'string' ? err : err.details || err.message || ''
+    ctx.body = {
+      code: 2,
+      msg: message || '服务异常,请稍后重试！',
+    }
+  },
+}
+```
+
+> `customError` 暴露 `err` 和 `ctx`两个参数，可根据自己的需求进行自定义处理，最后通过 `ctx.body = xxx` 进行返回结果处理。
+
+### useYunflyLog
+
+- 框架默认错误输出字段描述
+
+当 `useYunflyLog` 为 `true` 时会自动将错误信息记录到阿里云日志系统中，记录的内容如下：
+
+| 方法名  | 说明                                                         |
+| ------- | ------------------------------------------------------------ |
+| url     | 请求 URL                                                     |
+| method  | 请求类型                                                     |
+| request | 所有请求参数（兼容 get、post）                               |
+| headers | http 请求头信息                                              |
+| trace-id  | 链路id |
+| error   | error 错误详细信息                                           |
+
+> 当参数 `useYunflyLog`为`true`时, 无论是否自定义错误函数， 框架都会打印错误日志。
+
+### customErrorHandle
+
+从新定义 `error` 错误信息，核心处理 `class-validator` 错误信息
+
+```ts filename="src/config/config.default.ts"
+import { customErrorHandle } from '@yunflyjs/yunfly'
+
+config.error = {
+    // 用于重新组装error信息，处理class-validator错误，并且不影响其他错误
+    customErrorHandle,
+}
+```
+
+### enableHttpCode
+
+- 是否开启 HTTP Code
+
+- **false**：不开启，默认值， HTTP code 一直是 200
+- **true**：开启，如果 Error 类 httpCode 属性有值，则用 Error 类的 httpCode，没有值，则默认值是 `500`。
+
+### useRpcErrorMessage
+
+- 是否使用 rpc 错误信息作为 msg 的值
+
+- **true**：表示使用 rpc 错误信息作为响应结果的 msg 结果
+
+```javascript
+{
+    code: 200010, // go 返回的错误
+    msg: "Error: 2 UNKNOWN: 支付订单不存在"
+}
+```
+
+- **false**：表示使用统一的 “服务器错误，请重试” 作为 msg 结果
+
+```javascript
+{
+    code: 200010, // go 返回的错误
+    msg: "服务器错误，请重试"
+}
+```
+
+### showMessageDetail
+
+- 是否返回详情信息
+
+针对服务器运行时错误、rpc 错误或者传递了 `messageDetail` 属性的错误，是否返回 `mesageDetail` 信息。
+
+- **true**
+
+```javascript
+{
+    code: 500,
+    msg: "服务器错误，请重试",
+    msg_detail: "Cannot read property 'doSomething' of undefined" // 返回
+}
+```
+
+- **false**
+
+```javascript
+{
+    code: 500,
+    msg: "服务器错误，请重试"
+}
+```
+
+### unhandledRejection
+
+- 自定义 Promise 错误
+
+```typescript filename="src/config/config.default.ts" {4-11}
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  unhandledRejection: (err: any) => {
+    console.error(
+      'UnhandledRejection error, at time',
+      Date.now(),
+      'reason:',
+      err
+    )
+  }
+}
+```
+
+### uncaughtException
+
+- 自定义未能捕获的错误
+
+```typescript filename="src/config/config.default.ts" {4-11}
+config.error = {
+  enable: true,
+  useYunflyLog: true,
+  uncaughtException: (err: any) => {
+    console.error(
+      'uncaughtException error, at time',
+      Date.now(),
+      'reason:',
+      err
+    )
+  },
+}
+```
+
+## 抛错类型
+
+当程序出现错误时, 抛错有多种方式。
+
+### 断言
+
+```ts {7}
+import { strict as assert } from 'assert';
+
+@Get('/jest')
+test(
+    @BodyParam('name') name: string,
+): string {
+    assert.equal(typeof(name) === 'string', true , "name 参数必须为字符串类型!");
+    return name || 'success';
+}
+```
+
+```ts
+// 返回结果
+ctx.body = {
+  code: 2,
+  msg: 'name 参数必须为字符串类型!',
+}
+```
+
+### throw 抛错
+
+```ts {7-9}
+import { strict as assert } from 'assert';
+
+@Get('/jest')
+test(
+    @BodyParam('name') name: string,
+): string {
+    if (typeof(name) !== 'string') {
+        throw "name 参数必须为字符串类型!"
+    }
+    return name || 'success';
+}
+```
+
+```ts
+// 返回结果
+ctx.body = {
+  code: 2,
+  msg: 'name 参数必须为字符串类型!',
+}
+```
+
+### throw Error 错误类
+
+```ts {7-9}
+import { strict as assert } from 'assert';
+
+@Get('/jest')
+test(
+    @BodyParam('name') name: string,
+): string {
+    if (typeof(name) !== 'string') {
+        throw new Error ("name 参数必须为字符串类型!");
+    }
+    return name || 'success';
+}
+```
+
+```ts
+// 返回结果
+ctx.body = {
+  code: 2,
+  msg: 'name 参数必须为字符串类型!',
+}
+```
+
+### throw YunkeError 错误类 (推荐)
+
+```ts {8-10}
+import { strict as assert } from 'assert';
+import { BadRequestError } from '@yunflyjs/yunfly'
+
+@Get('/jest')
+test(
+    @BodyParam('name') name: string,
+): string {
+    if (typeof(name) !== 'string') {
+        throw new BadRequestError ("name 参数必须为字符串类型!");
+    }
+    return name || 'success';
+}
+```
+
+```ts
+// 返回结果
+ctx.body = {
+  code: 400,
+  msg: 'name 参数必须为字符串类型!',
+}
+```
+
+- 更多错误类请参考：[错误类使用](../docs/high-function/err-class-use.md)
+
+## Service 错误处理
+
+### global middleware
+
+框架所有方法错误信息默认由全局 `ErrorMiddleware` 中间件进行错误处理，一旦有任何报错，都会返回error信息
+
+```ts filename="src/service/UserService.ts"
+import { Service } from "typedi";
+// 
+@Service()
+export default class UserService {
+    // 用户鉴权
+    async auth(userId: number, ctx: any): Promise<any> {
+      const response = {}
+      // 以下代码会报错，会使用全局的ErrorMiddleware进行错误处理
+      response.data.name = 'xiaowang'
+      return response
+    }
+}
+```
+
+### try catch
+
+```ts filename="src/service/UserService.ts" {9-15}
+import { Service } from "typedi";
+// 
+@Service()
+export default class UserService {
+    // 用户鉴权
+    async auth(userId: number, ctx: any): Promise<any> {
+        // 使用 try catch 手动处理error信息
+        // 使用场景： 聚合多个接口时，此接口的报错不影响整个请求的成功状态
+        try {
+            const response = {}
+            response.data.name = 'xiaowang'
+            return response
+        } catch(err) {
+            return err
+        }
+    }
+}
+```
+
+### Decorator Catch
+
+- 自定义 `Catch` 装饰器处理错误信息
+
+```ts filename="utils/decorator.ts" {8-12}
+export function Catch(option?: ExtSdkOption): Function {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const _fn = descriptor.value;
+    descriptor.value = async function (...args: any[]): Promise<any> {
+        try {
+            return await _fn.apply(this, args);
+        } catch(err: any) {
+            // 自定义错误处理逻辑
+            const error = new Error();
+            error.message = '自定义错误信息';
+            error.code = 2;
+            throw error;
+        }
+    }
+    return descriptor;
+  };
+}
+```
+
+```ts filename="src/service/UserService.ts" {7}
+import { Service } from "typedi";
+import { Catch } from "../utils/decorator"
+// 
+@Service()
+export default class UserService {
+    // 用户鉴权
+    @Catch()
+    async auth(userId: number, ctx: any): Promise<any> {
+        // 使用 Catch 装饰器处理error信息
+        // 使用场景： 聚合多个接口时，此接口的报错不影响整个请求的成功状态
+        const response = {}
+        return response
+    }
+}
+```
+
+### ServiceV2
+
+- 使用自定义 `ServiceV2` 接收错误信息并手动处理
+
+```ts filename="src/service/UserService.ts" {19}
+import { Service } from "typedi";
+import { Catch } from "../utils/decorator"
+// services
+import { usrUserServiceV2 } from "../grpc-code-gen/2c/marvel-user/user/UsrUserService";
+//
+export interface RpcServiceResponse<T = any> {
+  'error'?: any;
+  'error_derails'?: string;
+  'response': T;
+  'metadata': any;
+}
+//
+@Service()
+export default class UserService {
+    // 用户鉴权
+    async auth(request: AnyOptions, ctx: any): Promise<any> {
+        // 使用 ServiceV2 处理error信息
+        // 使用场景： 聚合多个接口时，此方式可以自定义错误抛出方式
+        const { error, response }: RpcServiceResponse = await usrUserServiceV2.GetUserInfot({ request });
+        
+        if (error) {
+          throw error;
+        }
+   
+        return response
+    }
+}
+```
+
+## 如何输出错误日志
+
+- `yunfly` 框架代理了 `console` 方法，我们只需要打印错误信息，即可记录到日志系统中。
+
+```ts
+console.error('记录错误日志!');
+
+console.error('开发环境请在 log/error.log 中查看错误信息!');
+```
+

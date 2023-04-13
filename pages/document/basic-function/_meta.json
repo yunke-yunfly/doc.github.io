@@ -6,5 +6,9 @@
   "controller": "控制器(Controller)",
   "middleware": "中间件(Middleware)",
   "service": "服务(service)",
-  "logger": "日志"
+  "logger": "日志",
+  "catch-error": "异常处理",
+  "lifehook": "生命周期",
+  "plugin": "插件",
+  "timing-task": "定时任务"
 }

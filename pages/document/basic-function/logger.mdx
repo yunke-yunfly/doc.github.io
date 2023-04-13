@@ -224,7 +224,7 @@ logger.argumentsHandle(handle).info('自定义日志处理逻辑！');
 - 通过 `setArgsHandle` 配置处理器
 
 ```ts
-import logger, { setArgsHandle } from '@yunke/loggers';
+import logger, { setArgsHandle } from '@yunflyjs/loggers';
 
 const handle = (...args: any[]): any[] => {
     return args.map((item)=>{

@@ -22,6 +22,9 @@ const config: DocsThemeConfig = {
   feedback: {
     content: "问题? 请反馈给我们 ->"
   },
+  sidebar: {
+    defaultMenuCollapseLevel: 1,
+  },
   head: (
     <>
       <meta property="og:title" content="nextra-doc" />

@@ -1,0 +1,72 @@
+# Eslint
+
+代码风格校验器，这里采用 `eslint-plugin-node` 进行校验。
+
+## 使用
+
+### 1、安装依赖
+
+```js
+yarn add eslint eslint-plugin-node eslint-formatter-pretty --dev
+```
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="default">
+    - Requires Node.js >=8.10.0
+    - Requires ESLint >=5.16.0
+</Callout>
+
+
+### 2、配置 eslint 规则
+
+```js filename=".eslintrc.js"
+module.exports = {
+    extends: [
+        "eslint:recommended",
+        "plugin:node/recommended"
+    ],
+    rules: {
+        // 这里添加自定义规则
+        'import/no-extraneous-dependencies': 0,
+        'import/no-unresolved': 0
+    },
+    ignorePatterns: [
+        // 需要忽略的文件
+        'src/__tests__/**', 
+        'rollup.config.js', 
+        'commitlint.config.js'
+    ],
+};
+```
+
+更多eslint配置参考：https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats
+
+### 3、配置脚本命令
+
+```js filename="package.json" {3}
+{
+    "scripts": {
+        "lint:all": "yarn eslint --ext .js,.jsx,.ts,.tsx --format=pretty ./src"
+    }
+}
+```
+
+## 结合 husky 与 lint-stage 来做 commit-eslint 校验
+
+```bash
+yarn add --dev husky@^4.3.8 lint-staged@^10.5.4
+```
+
+package.json 内配置 husky 配置项
+
+```json filename="package.json" {4}
+{
+  "husky": {
+    "hooks": {
+        "pre-commit": "yarn lint:all"
+    }
+  }
+},
+```
+
+更多知识请参考：https://eslint.org/

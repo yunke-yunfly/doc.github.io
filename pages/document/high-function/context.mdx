@@ -1,0 +1,59 @@
+# Context 活动对象
+
+- `yunfly` 提供在 `service`、`npm包`、`自定义函数`、`plugin` 等位置获取当前 `context` 对象的能力。
+
+## 启用配置
+
+当前功能依赖 `@yunflyjs/yunfly-plugin-current-context` 插件。
+
+- 1. 安装依赖
+
+```ts
+yarn add @yunflyjs/yunfly-plugin-current-context
+```
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="default">
+  `@yunflyjs/yunfly` 以内置次插件。
+</Callout>
+
+- 2. 开启配置
+
+```ts filename="src/config/config.default.ts" {2}
+config.currentContext = {
+    enable: true // 默认值：false
+};
+```
+
+## 使用
+
+### 自定义函数获取
+
+```ts {4}
+import { getCurrentContext } from '@yunflyjs/yunfly'
+import { Context } from 'koa'
+// 获得koa 的 ctx对象
+const ctx = getCurrentContext();
+```
+
+### 在 Service 中获取
+
+```ts filename="src/service/ExampleService.ts" {11}
+// service
+import { getCurrentContext } from '@yunflyjs/yunfly'
+import { Context } from 'koa'
+import { Service } from "typedi";
+
+@Service()
+export default class ExampleService {
+
+  async getContextInService(): Promise<Object> {
+    // 在service代码中获取当前的context对象
+    const ctx: Context = getCurrentContext();
+    const res = {
+      config: ctx.config,
+    }
+  }
+}
+```

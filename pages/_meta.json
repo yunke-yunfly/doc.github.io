@@ -6,7 +6,8 @@
   },
   "document": {
     "title": "文档",
-    "type": "page"
+    "type": "page",
+    "theme": {}
   },
   "config": {
     "title": "配置",
