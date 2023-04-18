@@ -1,7 +1,3 @@
----
-sidebar_position: 2
----
-
 # 特性
 
 - 基于 [Koa](https://koa.bootcss.com/) 开发, 底层框架性能优异。

@@ -5,6 +5,15 @@ const withNextra = require('nextra')({
 })
 
 module.exports = {
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/document/introduction/introduce',
+  //       permanent: true,
+  //     },
+  //   ]
+  // },
   ...withNextra(),
   images: {
     unoptimized: true,

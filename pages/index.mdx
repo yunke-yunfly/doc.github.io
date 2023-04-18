@@ -1,6 +1,10 @@
- 
-export function Counter({ children }) {
-    location.href="/doc.github.io/document/introduction/introduce"
+
+import Script from 'next/script'
+
+export default function Dashboard() {
+  return (
+    <>
+      <Script>location.href = "/doc.github.io/document/introduction/introduce"</Script>
+    </>
+  )
 }
- 
-<Counter/>
