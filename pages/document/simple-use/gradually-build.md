@@ -50,26 +50,36 @@ yarn add cross-env typescript tsconfig-paths gts --dev
 
 ```json filename="tsconfig.json"
 {
-  "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "rootDir": "src",
+    "rootDir": "./src",
     "outDir": "./build/",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "noEmitOnError": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "moduleResolution": "node",
-    "strictPropertyInitialization": false,
     "module": "commonjs",
-    "target": "esnext",
-    "sourceMap": false
+    "target": "es2017",
+    "strict": true,
+    "allowJs": false,
+    "noUnusedLocals": true,
+    "removeComments": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "noEmitOnError": true,
+    "noUnusedParameters": false,
+    "strictPropertyInitialization": false,
+    "sourceMap": false,
+    "declarationDir": "./build/"
   },
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/__tests__"
   ]
 }
 ```
@@ -77,7 +87,7 @@ yarn add cross-env typescript tsconfig-paths gts --dev
 ## 编写 Controller
 
 ```ts filename="src/controller/ExampleController.ts"
-import { Get, JsonController, BodyParam, Post, QueryParam } from 'yunfly';
+import { Get, JsonController, BodyParam, Post, QueryParam } from '@yunflyjs/yunfly';
 /**
  * 测试案例controller
  *
@@ -124,7 +134,7 @@ export default class ExampleController {
  * (note) this is a minimum config.
 */
 import * as path from 'path';
-import { Config } from 'yunfly';
+import { Config } from '@yunflyjs/yunfly';
 
 const config = () => {
     const config: Config = {};

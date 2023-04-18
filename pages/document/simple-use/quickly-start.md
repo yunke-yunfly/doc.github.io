@@ -18,20 +18,22 @@ yarn config set registry https://registry.npmmirror.com
 - 安装依赖
 
 ```shell
-yarn global add @yunflyjs/yunfly-gen
+yarn global add @yunflyjs/yunfly-cli
 ```
 
 - 初始化模板
 
 ```shell
-npx yunfly-gen
+# 输入项目名称
+npx yunfly-cli
+
+# 安装依赖
+yarn install
 ```
 
-- 安装依赖/启动项目
+- 启动项目
 
 ```shell
-yarn install
-
 // 启动项目
 yarn dev
 yarn watch:dev
