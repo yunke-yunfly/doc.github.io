@@ -14,30 +14,42 @@ Controller -> GRPC
 Middleware -> GRPC
 ```
 
+## 前置条件
+
+参数透传依赖 `currentContext` 能力。需要确保 `currentContext` 已启用，[安装并启用currentContext插件](./context#使用)。
+
 ## 使用
 
-### 前提
+### 透传 Api
 
-参数透传依赖 `currentContext` 能力。需要确保 `currentContext` 配置已启用。
+透传支持以下 Api
 
-```ts filename="src/config/config.default.ts" {2}
-config.currentContext = {
-    enable: true // 默认值：false
-};
+```ts
+import { metadata } from '@yunflyjs/yunfly-plugin-current-context'
+
+// 获取单个字段
+metadata.get('xxx'); => any[]
+
+// 获取所有 metadata 信息
+metadata.getMap('xxx'); => {[props:string]: any}
+
+// 设置某个字段的值
+metadata.set('xxx','xxx'); => void
+
+// 给某个字段push值
+metadata.add('xxx','xxx'); => void
+
+// 删除metadat字段
+metadata.remove('xxx','xxx'); => void
 ```
 
-### 透传方式
-
-当前模式下支持以下1种透传模型：
-
-- 局部透传
-
-在 `Controller、Service、middleware、util` 等位置注入 `metadata`，可通过 `@yunflyjs/yunfly` 暴露的 `metadata` 对象添加透传参数。
+### 参数透传案例
 
 #### Controller 中透传
 
-```ts filename="src/controller/SomeController.ts"
-import { Get, metadata } from '@yunflyjs/yunfly'
+```ts filename="src/controller/SomeController.ts" {10-20}
+import { Get } from '@yunflyjs/yunfly'
+import { metadata } from '@yunflyjs/yunfly-plugin-current-context'
 
 // 案例：Controller中使用
 class SomeController {
@@ -45,10 +57,18 @@ class SomeController {
   Get('/user')
   async getUser() {
     // 通过 metadata.add 添加
-    // highlight-start
-    metadata.add('name','zane');
-    // highlight-end
-    // 
+    metadata.add('name','zhang'); 
+    console.log(metadata.get('name')); // ['zhang']
+
+    metadata.add('name','san'); 
+    console.log(metadata.get('name')); // ['zane','san']
+
+    metadata.set('name','lisi'); 
+    console.log(metadata.get('name')); // ['lisi']
+
+    metadata.remove('name'); 
+    console.log(metadata.get('name')); // undefined
+
     return true;
   }
 }
@@ -56,8 +76,9 @@ class SomeController {
 
 #### Middleware 中透传
 
-```ts filename="src/middleware/ExampleMiddleware.ts"
-import { KoaMiddlewareInterface, Context, metadata } from "@yunflyjs/yunfly";
+```ts filename="src/middleware/ExampleMiddleware.ts" {9}
+import { KoaMiddlewareInterface, Context } from "@yunflyjs/yunfly";
+import { metadata } from '@yunflyjs/yunfly-plugin-current-context'
 
 export class MyMiddleware implements KoaMiddlewareInterface {
     async use(context: Context, next: (err?: any) => Promise<any>): Promise<any> {
@@ -72,8 +93,8 @@ export class MyMiddleware implements KoaMiddlewareInterface {
 
 #### Util 函数中透传
 
-```ts filename="src/middleware/ExampleMiddleware.ts"
-import { metadata } from "@yunflyjs/yunfly";
+```ts filename="src/middleware/ExampleMiddleware.ts" {5}
+import { metadata } from '@yunflyjs/yunfly-plugin-current-context'
 
 export function AddMetadata () {
   const { appid } = getMetadataFromService();

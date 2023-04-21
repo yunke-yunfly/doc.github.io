@@ -6,6 +6,7 @@
   "controller": "控制器(Controller)",
   "middleware": "中间件(Middleware)",
   "service": "服务(service)",
+  "body-parser": "获取Post参数",
   "logger": "日志",
   "catch-error": "异常处理",
   "lifehook": "生命周期",

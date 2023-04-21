@@ -1,19 +1,67 @@
 # 异常处理
 
-框架异常处理统一由 `@yunflyjs/yunfly-plugin-error` 插件进行处理。内置通用处理逻辑，你也可以定制自己的异常处理逻辑。
+框架默认不提供异常处理器，你可以定制自己的异常处理器。
+
+## 自定义错误处理器
+
+创建 `ErrorMiddleware.ts` 文件，定制自己的错误处理逻辑。
+
+```ts filename="src/middleware/ErrorMiddleware.ts" {6-17}
+import { KoaMiddlewareInterface, Middleware, Context, logger } from '@yunflyjs/yunfly';
+
+@Middleware({ type: 'before', priority: 20 })
+export default class YunflyPluginErrorMIddleware implements KoaMiddlewareInterface {
+  async use(ctx: Context, next: (err?: any) => Promise<any>): Promise<any> {
+    try {
+      await next();
+    } catch (err: any) {
+      // 定制自己的错误处理器
+      logger.error({ msg: 'Request error', url: ctx.req.url, error: err });
+      // 返回错误信息
+      const body: Record<string, any> = {
+        code: err.code || 400,
+        msg: err.message || '服务器异常',
+      };
+      ctx.body = body;
+    }
+  }
+}
+```
+
+## 使用框架提供的统一错误处理器
+
+框架异常处理统一由 `@yunflyjs/yunfly-plugin-error` 插件进行处理。内置通用处理逻辑。
 
 ## 使用
 
-import { Callout } from 'nextra-theme-docs'
+1. 安装依赖
 
-<Callout type="default">
-  `@yunflyjs/yunfly`已内置 `error` 插件。
-</Callout>
-- 配置 `config.error` 项
+```ts
+yarn add @yunflyjs/yunfly-plugin-error
+```
+
+2. `config/config.plugin.ts` 中声明插件
+
+```ts filename = src/config/config.plugin.ts {6-9}
+/**
+ * yunfly 插件
+ * 数组顺序就是插件的加载顺序
+ */
+const plugins: {[key:string]: string}[] = [
+  {
+    name: 'error',
+    package: '@yunflyjs/yunfly-plugin-error'
+  }
+];
+// 
+export default plugins;
+```
+
+
+3. `config/config.default.ts` 中启用插件 `config.error`
 
 ```ts filename="src/config/config.default.ts"
 import {Context,customErrorHandle} from '@yunflyjs/yunfly';
-import { ValidationError } from 'class-validator';
 
 /**
  * error handle

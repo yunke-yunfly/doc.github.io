@@ -18,7 +18,7 @@ import { Callout } from 'nextra-theme-docs'
 - config.release.ts : 预发布环境生效
 - config.prod.ts    : 生产环境生效
 
-<Callout type="info">
+<Callout type="default">
   一般建议最少有一个 `config.default.ts` 文件。
 </Callout>
 
@@ -84,6 +84,10 @@ config.routingControllersOptions = {
 
 ### Error 配置
 
+<Callout type="default">
+  Error 配置需要安装 `@yunflyjs/yunfly-plugin-error` 插件。[插件使用文档](./catch-error.mdx)
+</Callout>
+
 ```ts filename="src/config/config.default.ts"
 /**
  * error handle
@@ -136,6 +140,10 @@ config.error = {
 
 ### BodyParser 配置
 
+<Callout type="default">
+  BodyParser 配置需要安装 `@yunflyjs/yunfly-plugin-body-parser` 插件。[插件使用文档](./body-parser.md)
+</Callout>
+
 ```ts filename="src/config/config.default.ts"
 // body参数配置
 config.bodyParser = {
@@ -154,6 +162,10 @@ config.bodyParser = {
 | queryString | `Object` | 否 | `url` 上传数据大小限制 |
 
 ### CurrentContext 配置
+
+<Callout type="default">
+  CurrentContext 配置需要安装 `@yunflyjs/yunfly-plugin-current-context` 插件。[插件使用文档](./catch-error.mdx)
+</Callout>
 
 ```ts filename="src/config/config.default.ts"
 /**
