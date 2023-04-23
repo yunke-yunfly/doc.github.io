@@ -67,7 +67,7 @@ config.redis = () => {
 | package | `string` | 否 | `npm包`插件名，例如: `@yunflyjs/yunfly-plugin-redis`。 (备注：`package`与`path`必须有一个字段为真)|
 | path | `string` | 否 | `本地开发`插件目录地址 (备注：`package`与`path`必须有一个字段为真)|
 | async | `boolean` | 否 | 若为 `true`，表示同步加载插件，加载完才会加载下一个插件；否则为异步加载，不阻塞其他插件加载。|
-| lifeHook | `string` | 否 | 可选值：`beforeStart`、`configDidReady`、`appDidReady`、`afterStart`，表示在哪个生命周期进行加载。默认在 `appDidReady` 周期下加载插件。想进一步了解生命周期[可看](./lifehook.md)
+| lifeHook | `string` | 否 | 可选值：`beforeStart`、`configDidReady`、`appDidReady`、`afterStart`，表示在哪个生命周期进行加载。默认在 `appDidReady` 周期下加载插件。参考：[框架生命周期介绍](./../basic-function/lifehook.md)
 | priority | `number` | 否 | 默认值为：50, 值越小越先执行插件 |
 
 ### package 和 path
@@ -76,3 +76,7 @@ config.redis = () => {
 - `path` 是绝对路径引入，如应用内部抽了一个插件，但还没达到开源发布独立 `npm` 的阶段
 
 > 关于这两种方式的使用场景，可以参见：[渐进式开发](../high-function/plugin-dev#渐进式开发)。
+
+## 开发插件
+
+当前文档只是对插件使用的描述，若想要了解更多请查看：[插件开发篇](../high-function/plugin-dev)

@@ -24,10 +24,11 @@ config.cluster = {
 | 字段 | 类型 | 必选 | 说明 |
 | ------ | ------ |------ |------ |
 | enable | `boolean` | 是 | 是否开启集群环境，不开启则保持以前状态 |
-| alone | `string` | 否 | 开启alone独立进程的运行脚本路径 |
+| useAloneWorker | `boolean` | 否 | 是否开启 alone 进程（默认：true） |
 | count | `number` |  否 | worker进程数（默认开发环境1个进程，生产环自动获取docker容器的cpu核数） |
 | env | `Object` |  否 | cluster进程能获取到的环境env变量，（默认 process.env） |
 | title | `string` |  否 | cluster集群组名称 （默认： yunfly-{{package.name}}） |
+| mode | `null \| test` |  否 | 运行模型，若值为test时，开发环境可自定义 count 数量 |
 
 ## 进程分类
 
@@ -223,3 +224,25 @@ cluster.worker.on('message', (msg: AnyOptionConfig) => {
 > * 2、开发环境下，不启用refork功能 （即：worker异常退出之后不进行fork新的worker）
 > * 3、开发环境reload模式下，只对worker进行进行reload，主进程master 和app进程不进行重启，减少重启耗时
 > * 4、开发模式下，不停的更改文件时，触发机制有默认500毫秒的延迟时间，以防止不停重启（此时间可以调整： 配置 cluster.reloadDelay 即可）
+
+## 附录
+
+### cluster 时序图
+
+![cluster 时序图](../../image/cluster/1646709519899-0-image.png)
+
+### cluster启动模型图
+
+![cluster启动模型图](../../image/cluster/JxRGY4BYNd1617277289391-1617277289391.png)
+
+### 服务稳定性保证
+
+![服务稳定性保证](../../image/cluster/1646709581135-0-image.png)
+
+### cluster启动成功案例
+
+![cluster启动成功案例](../../image/cluster/7QHfWFpzrW1617268910564-1617268910564.png)
+
+### 多进程负债均衡图
+
+![多进程负债均衡图](../../image/cluster/1646709650706-0-image.png)

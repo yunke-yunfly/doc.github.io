@@ -116,7 +116,7 @@ export default plugins;
 | package | `string` | 否 | `npm包` 插件名，例如: `@yunflyjs/yunfly-plugin-redis`。 (备注：`package` 与 `path` 必须有一个字段为真)|
 | path | `string` | 否 | `本地开发` 插件目录地址 (备注：`package` 与`path` 必须有一个字段为真)|
 | async | `boolean` | 否 | 若为 `true`，表示同步加载插件，加载完才会加载下一个插件；否则为异步加载，不阻塞其他插件加载。|
-| lifeHook | `string` | 否 | 可选值：`beforeStart`、`configDidReady`、`appDidReady`、`afterStart`，表示在哪个生命周期进行加载。默认在 `appDidReady` 周期下加载插件。想进一步了解生命周期[可看](./../basic-function/lifehook.md) |
+| lifeHook | `string` | 否 | 可选值：`beforeStart`、`configDidReady`、`appDidReady`、`afterStart`，表示在哪个生命周期进行加载。默认在 `appDidReady` 周期下加载插件。[框架生命周期介绍](./../basic-function/lifehook.md) |
 | priority | `number` | 否 | 默认值为：50, 值越小越先执行插件 |
 
 ## 执行顺序
@@ -172,7 +172,44 @@ const plugins: {[key:string]: string}[] = [
 
 上面案例中 插件 c 设置了权重,由于插件默认权重值为50，因此最终案例插件执行顺序为： `d > c > a > b`
 
-## controller 插件路由
+## 开发同步插件
+
+当后续的业务依赖插件执行完成时，就需要插件同步化，开发一个同步插件需要在 `app.ts` 中导出一个同步函数即可：
+
+- 例如：
+
+```ts filename="src/plugin/yunfly-plugin-xxx/src/app.ts" {7}
+import { ApolloConfig, Config, KoaApp } from "@yunflyjs/yunfly";
+// 
+export default async function AsyncPlugin(
+  { koaApp, pluginConfig, config }: {koaApp:KoaApp; pluginConfig:PluginConfig; config:Config}
+) {
+  // 返回一个 promise 即同步插件
+  return await getMsgFromApi();
+}
+```
+
+## 插件分类
+
+插件大致可分为以下4中类型：
+
+### 1. 常规插件
+
+可以在应用初始化时执行一些操作，例如注入环境变量，拉取接口等事情, [常规插件参考案例](#常规插件)
+
+### 2. 定时任务插件
+
+顾名思义即在插件中执行定时任务，[定时任务插件参考案例](#定时任务插件)
+
+### 3. 中间件插件
+
+以插件的方式向应用总注入中间件，[中间件插件参考案例](#中间件插件)
+
+### 4. 路由插件
+
+插件中暴露路由，安装插件即可直接使用，路由插件中可以有 controller, service, middleware, schedule 等, 可以认为路由插件就是一个小型的应用，可以独立运行。 [路由插件参考案例](#路由插件)
+
+## 路由插件如何访问
 
 - 插件支持`controller`的加载, 你可以通过`npm`包的方式来开发通用的`api`。
 
@@ -229,7 +266,7 @@ config.controllerExample = {
 
 ## 渐进式开发
 
-- 由[配置](#配置)可以知道，在Yunfly`插件`里, 有 `path` 和 `package` 两种加载模式，那我们该如何选择呢？
+- 由[配置](#使用插件配置)可以知道，在Yunfly`插件`里, 有 `path` 和 `package` 两种加载模式，那我们该如何选择呢？
 
 - 下面以实际案例，一步步进行演示，如何渐进式地进行代码演进。
 
@@ -335,14 +372,17 @@ export default function KoaMiddleware(app: KoaApp, config: Config) {
 ```ts filename="src/plugin/yunfly-plugin-email/src/app.ts"
 import { ApolloConfig, Config, KoaApp } from "@yunflyjs/yunfly";
 // 
-export default function EmailPlugin(app: KoaApp, config: Config) {
+export default function EmailPlugin(
+  { koaApp, pluginConfig, config }: {koaApp:KoaApp; pluginConfig:PluginConfig; config:Config}
+) {
+  const {host,port,secure,user,pass} = pluginConfig;
   const transporter = nodemailer.createTransport({
-    host: config.email.host,
-    port: config.email.port,
-    secure: config.email.secure,
+    host,
+    port,
+    secure,
     auth: {
-      user: config.email.user,
-      pass: config.email.pass,
+      user,
+      pass,
     },
   });
   // 挂载到context对象下
@@ -885,12 +925,12 @@ export default function config(apolloConfig: any = {} /* V3.1.14+新增参数 */
 
 ### 插件架构图
 
-![插件](https://github.com/yunke-yunfly/doc.github.io/blob/nextra/image/1646709290055-0-image.png)
+![插件](../../image/plugin/1646709290055-0-image.png)
 
 ### 插件插拔模型
 
-![插件](https://yunke-oss.oss-cn-hangzhou.aliyuncs.com/bff-basis-fe-sites/imgs/2022/03/08/1646709332445-0-image.png)
+![插件](../../image/plugin/1646709332445-0-image.png)
 
 ### 插件代码插拔模型
 
-![插件](https://yunke-oss.oss-cn-hangzhou.aliyuncs.com/bff-basis-fe-sites/imgs/2022/03/08/1646709355673-0-image.png)
+![插件](../../image/plugin/1646709355673-0-image.png)
