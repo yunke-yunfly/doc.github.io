@@ -885,7 +885,7 @@ export default function config(apolloConfig: any = {} /* V3.1.14+新增参数 */
 
 ### 插件架构图
 
-![插件](https://yunke-oss.oss-cn-hangzhou.aliyuncs.com/bff-basis-fe-sites/imgs/2022/03/08/1646709290055-0-image.png)
+![插件](https://github.com/yunke-yunfly/doc.github.io/blob/nextra/image/1646709290055-0-image.png)
 
 ### 插件插拔模型
 
