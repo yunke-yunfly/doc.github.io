@@ -12,13 +12,36 @@
 
 ## 使用
 
-> 若需要使用 JWT , 需要自行安装 `@yunflyjs/yunfly-plugin-jwt` 插件
+1. 安装依赖
+
+```ts
+yarn add yarn add @yunflyjs/yunfly-plugin-fast-jwt
+```
+
+2. config/config.plugin.ts 中声明插件
+
+```ts filename="config/config.plugin.ts" {6-9}
+/**
+ * yunfly 插件
+ * 数组顺序就是插件的加载顺序
+ */
+const plugins: {[key:string]: string}[] = [
+  {
+    name: 'error',
+    package: '@yunflyjs/yunfly-plugin-error'
+  }
+];
+// 
+export default plugins;
+```
+
+3. config/config.default.ts 中启用插件 config.jwt
 
 ```js filename="src/config/config.default.ts"
 config.jwt = {
   enable: true,
-  expiredPassThrough: true,
-  secret:'EXAMPLE_TOKEN_V1',
+  expiredPassThrough: false,
+  secret:'YUNFLYJS_JWT_TOKEN_DEMO',
   expire: '1h',
   token: { 
     type: 'cookie', 
@@ -48,8 +71,8 @@ type JWTConfig = JWTOptions | ((ctx: Context) => JWTOptions)
 config.jwt = (ctx: Context) => {
   return {
     nable: true,
-    expiredPassThrough: true,
-    secret:'EXAMPLE_TOKEN_V1',
+    expiredPassThrough: false,
+    secret:'YUNFLYJS_JWT_TOKEN_DEMO',
     expire: '1h',
     ......
   }
@@ -61,8 +84,8 @@ config.jwt = (ctx: Context) => {
 | 参数 | 类型 | 默认值 |必填 | 说明 |
 | ------ | ------ | ------ | ------ | ------ |
 | enable | `boolean` |  `true`  | 是 | 是否启用 JWT 校验 |
-| secret | `string` |  `EXAMPLE_TOKEN_V1` | 是 | JWT 盐值 |
-| expiredPassThrough | `boolean` |  `true`  | 否 | 当`JWT`过期时是`自动重签`还是向外`抛出过期错误`。自动重签会一直不过期，抛出过期错误需要自定义错误处理逻辑 |
+| secret | `string` |  `YUNFLYJS_JWT_TOKEN_DEMO` | 是 | JWT 盐值 |
+| expiredPassThrough | `boolean` |  `false`  | 否 | 当`JWT`过期时是`自动重签`还是向外`抛出过期错误`。自动重签会一直不过期，抛出过期错误需要自定义错误处理逻辑 |
 | expire | `string \| number`| `3h` |  否  | 过期时间 Eg: 60, "2 days", "10h", "7d".  ("120" is equal to "120ms"). |
 | token | `JWTTokenOptions` |  `{ type:'header', key: 'Authorization' }` |  否  | token配置项 (重要参数，请关注下面说明。)|
 | rsSign | `RsSignOptions` |  `{ enable: false, interval: 15 }` |  否  |自动续签,`interval`单位为分，默认为15分钟。若开启，当判断过期时间是否快超过`interval`分钟， 如果快超过就重新生成JWT秘钥。若`expire`小于等于`interval`则不处理|
