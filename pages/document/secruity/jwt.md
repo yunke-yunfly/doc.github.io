@@ -27,8 +27,8 @@ yarn add yarn add @yunflyjs/yunfly-plugin-fast-jwt
  */
 const plugins: {[key:string]: string}[] = [
   {
-    name: 'error',
-    package: '@yunflyjs/yunfly-plugin-error'
+    name: 'jwt',
+    package: '@yunflyjs/yunfly-plugin-fast-jwt'
   }
 ];
 // 
