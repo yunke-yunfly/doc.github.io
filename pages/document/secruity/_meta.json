@@ -1,0 +1,14 @@
+{
+  "jwt": "JWT",
+  "whitelist": "Whitelist",
+  "methods": "Methods",
+  "xss": "XSS",
+  "csrf": "CSRF",
+  "xframe": "Xframe",
+  "hsts": "Hsts",
+  "cors": "CORS",
+  "csp": "CSP",
+  "validator": "Validator",
+  "rate-limiter": "限流",
+  "fusing": "熔断"
+}

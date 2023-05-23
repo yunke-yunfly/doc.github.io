@@ -1,0 +1,71 @@
+# 链路追踪
+
+## 概念
+
+一个请求从发起到结束中间经过的所有服务(或流程)都能通过一个标识进行关联起来，这个标识通常为`trace-id`，所有从 `Client` -> `BFF` -> `Service` 的请求日志都应自动打上 `trace-id` 的标识。
+
+链路追踪的实现没有固定的方式，当前提供了两种方式
+
+## 使用 currentContext 实现链路追踪
+
+链路追踪 `trace-id` 依赖 `currentContext` 能力。需要确保 `currentContext` 已启用，[安装并启用currentContext插件](./context#使用)。
+
+- 使用, 例如 BFF 发起的 axios 请求中传递 trace-id
+
+```ts
+import { getCurrentTrace, metadata } from '@yunflyjs/yunfly-plugin-current-context'
+ 
+// 在 node.js 发起 http 请求
+axios({
+  method: 'post',
+  url: 'http://xxx.com/api/get-msg',
+  headers: {
+    // 链路 trace-id
+    'trace-id': getCurrentTrace(),
+    // 自定义透传头
+    'name': metadata.get('name'),
+  },
+})
+  .then(function (response) {
+    // do something
+  });
+```
+
+## 使用 apm 实现链路追踪
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="default">
+  apm 使用的是 elastic-apm-node, apm 对应用的性能损耗较大, 请慎重使用。
+</Callout>
+
+链路追踪核心依赖 `apm` 服务，需要安装 apm 插件。
+
+1. 安装依赖
+
+```ts
+yarn add @yunflyjs/yunfly-plugin-apm
+```
+
+2. `config.plugin.ts` 中声明插件
+
+```ts filename="src/config/config.plugin.ts"
+const plugins: { [key: string]: string }[] = [
+  {
+    name: 'apm',
+    package: '@yunflyjs/yunfly-plugin-apm',
+    priority: 5
+  },
+];
+export default plugins;
+```
+
+3. `config.default.ts` 配置项 （可选）
+
+```ts filename="src/config/config.default.ts"
+// body参数配置
+config.apm = {
+  // 开启 apm 服务
+  active: process.env.NODE_ENV === 'production',
+};
+```

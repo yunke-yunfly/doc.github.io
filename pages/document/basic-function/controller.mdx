@@ -1,0 +1,904 @@
+# 控制器(Controller)
+
+`yunfly` 路由底层框架库为 `routing-controllers`，使用 `Typescript` 注解能力来进行路由的开发。
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="info">
+  `Controller` 主要用于参加校验, 简单逻辑处理, 调用 `Service` 方法。
+</Callout>
+
+## 初始化项目
+
+- 1. 安装 `yunfly` 框架
+
+```ts
+yarn add @yunflyjs/yunfly
+```
+
+- 2. 配置 `src/config.default.ts` 中 `routingControllersOptions` 配置项
+
+```ts filename="src/config/config.default.ts" {2-8}
+config.routingControllersOptions = {
+  currentUserChecker,
+  defaultErrorHandler: false,
+  controllers: [path.join(__dirname, '../controller/*')],
+  middlewares: [path.join(__dirname, '../middleware/*')],
+  defaults: {
+    nullResultCode: 200,  // 204 | 404
+    undefinedResultCode: 200 // 204 | 404
+  }
+};
+```
+
+- 3. `tsconfig.json` 中需要设置以下配置项
+
+```ts filename="tsconfig.json"
+{
+  "emitDecoratorMetadata": true,
+  "experimentalDecorators": true
+}
+```
+
+## 快速使用
+
+- 1. `src/controller` 下新建 `ExampleController.ts` 文件
+
+```ts filename="src/controller/ExampleController.ts"
+import { Controller, Param, Body, Get, Post, Put, Delete } from '@yunflyjs/yunfly';
+
+@Controller()
+export class ExampleController {
+  @Get('/users')
+  getAll() {
+    return 'This action returns all users';
+  }
+
+  @Get('/users/:id')
+  getOne(@Param('id') id: number) {
+    return 'This action returns user #' + id;
+  }
+
+  @Post('/users')
+  post(@Body() user: any) {
+    return 'Saving user...';
+  }
+
+  @Put('/users/:id')
+  put(@Param('id') id: number, @Body() user: any) {
+    return 'Updating a user...';
+  }
+
+  @Delete('/users/:id')
+  remove(@Param('id') id: number) {
+    return 'Removing user...';
+  }
+}
+```
+
+- 2. 启动项目
+
+```ts
+// 启动
+yarn dev
+
+// 监听模式启动
+yarn watch:dev
+```
+
+- 3. 访问
+
+```shell
+# 浏览器将显示 This action returns all users。
+http://localhost:3000/users。
+
+# 将显示 This action returns user #1
+http://localhost:3000/users/1 
+```
+
+## 使用 JSON
+
+对于一个总是返回 `JSON` 的 `REST API`，建议用 `@JsonController` 代替 `@Controller`。 `@JsonController` 装饰的控制器路由的响应数据将自动转换为 `JSON` 类型且 `Content-Type` 被设置为 `application/json`。
+同时请求的 `application/json` 头信息也可以被解释，请求 `Body` 将解析为 `JSON`。
+
+```ts filename="src/controller/ExampleController.ts"
+import { JsonController, Param, Body, Get, Post, Put, Delete } from '@yunflyjs/yunfly';
+
+@JsonController()
+export class ExampleController {
+  @Get('/users')
+  getAll() {
+    return userRepository.findAll();
+  }
+
+  @Get('/users/:id')
+  getOne(@Param('id') id: number) {
+    return userRepository.findById(id);
+  }
+
+  @Post('users')
+  post(@Body() user: User) {
+    return userRepository.insert(user);
+  }
+}
+```
+
+## 返回 Promise
+
+返回一个 `Promise`，响应将等待该 `Promise` 回执后返回其结果。
+
+```ts filename="src/controller/ExampleController.ts"
+import { JsonController, Param, Body, Get, Post, Put, Delete } from '@yunflyjs/yunfly';
+
+@JsonController()
+export class ExampleController {
+  @Get('/users')
+  async getAll() {
+    return await userRepository.findAll();
+  }
+
+  @Get('/users/:id')
+  async getOne(@Param('id') id: number) {
+    return await userRepository.findById(id);
+  }
+
+  @Post('/users')
+  async post(@Body() user: User) {
+    return await userRepository.insert(user);
+  }
+
+  @Put('/users/:id')
+  async put(@Param('id') id: number, @Body() user: User) {
+    return await userRepository.updateById(id, user);
+  }
+
+  @Delete('/users/:id')
+  async remove(@Param('id') id: number) {
+    return await userRepository.removeById(id);
+  }
+}
+```
+
+## 从目录加载控制器
+
+在 `config.routingControllersOptions.controllers` 中指定文件夹，即可加载该目录下所有控制器：
+
+```ts filename="src/config/config.default.ts" {2}
+config.routingControllersOptions = {
+  controllers: [path.join(__dirname, '../controller/*')],
+};
+```
+
+## 从目录加载中间件
+
+在 `config.routingControllersOptions.middlewares` 中指定文件夹，即可加载该目录下所有全局中间件：
+
+```ts filename="src/config/config.default.ts" {2}
+config.routingControllersOptions = {
+  middlewares: [path.join(__dirname, '../middleware/*')],
+};
+```
+
+## 路由前缀
+
+- 全局路由前缀
+
+要为所有路由添加前缀，比如 `/api`，可以使用 `routePrefix` 配置项：
+
+```ts filename="src/config/config.default.ts" {2}
+  config.routingControllersOptions = {
+    routePrefix: '/api',
+  }
+```
+
+- 指定控制器路由前缀
+
+向控制器装饰器传递根路由参数，控制器下的路由将添加该跟路由前缀：
+
+```ts filename="src/controller/UserController.ts" {3}
+import { Controller } from "@yunflyjs/yunfly";
+
+@Controller('/users')
+export class UserController {
+  // ...
+}
+```
+
+## Method 装饰器
+
+如下图，我们需要对控制器下的不同 `HTTP` 方法做不同处理。
+
+如 `@Get('/users/:id')` 会为 `GET /users/:id` 请求生成路由映射，这意味着如果 `GET /users/:id` 请求则会走 `handleGet` 逻辑。
+
+同理，`@Post('/users')` 会为 `POST /users` 请求生成路由映射，`POST /users` 请求则会走 `handlePost` 逻辑。
+
+以此类推，我们针对其他 `HTTP` 方法 `PUT DELETE PATCH HEAD` 分别注入路由处理逻辑。
+
+```ts filename="src/controller/ExampleController.ts" {6,11,16,21,26,31}
+import { Controller, Param, Body, Get, Patch, Post, Head, Put, Delete } from '@yunflyjs/yunfly';
+
+@Controller()
+export class ExampleController {
+
+  @Get('/users/:id')
+  handleGet(@Param('id') id: number) {
+    return userRepository.findById(id);
+  }
+
+  @Post('/users')
+  handlePost(@Body() user: User) {
+    return userRepository.insert(user);
+  }
+
+  @Put('/users/:id')
+  handlePut(@Param('id') id: number, @Body() user: User) {
+    return userRepository.updateById(id, user);
+  }
+
+  @Delete('/users/:id')
+  handleDelete(@Param('id') id: number) {
+    return userRepository.removeById(id);
+  }
+
+  @Patch('/users/:id')
+  handlePatch() {
+    return userRepository.updateById(id, user);
+  }
+
+  @Head('/users/:id')
+  handleHead() {
+    return userRepository.removeById(id);
+  }
+}
+```
+
+更多方法装饰器说明：
+
+| 标识 | 示例 | 描述 |
+| ------ | ------ | ------ |
+| @Get(route: string\|RegExp) | @Get("/users") all() | 匹配 HTTP GET 方法 |
+| @Post(route: string\|RegExp) | @Post("/users") save() | 匹配 HTTP Post 方法  |
+| @Put(route: string\|RegExp) | @Put("/users/:id") update() | 匹配 HTTP Put 方法  |
+| @Patch(route: string\|RegExp) | @Patch("/users/:id") patch() | 匹配 HTTP Patch 方法  |
+| @Delete(route: string\|RegExp) | @Delete("/users/:id") delete() | 匹配 HTTP Delete 方法  |
+| @Head(route: string\|RegExp) | @Head("/users/:id") head() | 匹配 HTTP Head 方法  |
+| @All(route: string\|RegExp) | @All("/users/me") rewrite() | 匹配所有 HTTP 方法  |
+
+## 动态路由
+
+- `controller` 动态路由
+
+如果要匹配动态路由的话，可通过`:[参数]`的方式注入。如：
+
+```ts filename="src/controller/ExampleController.ts" {3}
+import { Controller } from "@yunflyjs/yunfly";
+
+@Controller('/users/:id')
+export class ExampleController {
+  // ...
+}
+```
+
+- `method` 动态路由
+
+```ts filename="src/controller/ExampleController.ts" {6}
+import { Controller, Get, Param } from "@yunflyjs/yunfly";
+
+@Controller('/users')
+export class ExampleController {
+
+  @Get("/:id")
+  getOne(@Param("id") id: number) { 
+    // ... 
+  }
+}
+```
+
+## 使用 Req 和 Res 对象
+
+直接使用框架的 Request 对象和 Response 对象。 如果想自己处理响应，可以在方法中返回该 Response 对象。
+
+```ts filename="src/controller/ExampleController.ts" {7-8}
+import { Controller, Req, Res, Get } from '@yunflyjs/yunfly';
+
+@Controller()
+export class ExampleController {
+  @Get('/users')
+  getAll(
+    @Req() request: any, 
+    @Res() response: any
+  ) {
+    return response.send('Hello response!');
+  }
+}
+```
+
+> `@Req()` 装饰器注入了一个 `Request` 对象，`@Res()` 装饰器注入了一个 `Response` 对象。 如果安装了对应的类型声明，也可以对它们进行声明：
+
+## 获取 Param 参数
+
+- 用于获取动态路由参数
+
+### @Param
+
+```ts {3}
+@Get("/users/:id")
+getOne(
+  @Param("id") id: number
+) { 
+  // 这里可以访问 id
+}
+```
+
+### @Params
+
+```ts {3}
+@Get("/users/:id/:name")
+getOne(
+  @Params() params: {id: number; name: string }
+) { 
+  // 这里可以访问 params.id, params.name
+}
+```
+
+## 获取 Query 参数
+
+- 获取通过 `get` 传递的参数
+
+### @QueryParam
+
+```ts {3}
+@Get("/users")
+getUsers(
+  @QueryParam("name") name: string
+) {
+  // 这里可以访问 name
+}
+```
+
+### @QueryParams
+
+```ts {3}
+@Get("/users")
+getUsers(
+  @QueryParams() query: {name: string; age: number}
+) {
+  // 这里可以访问query.name, query.age
+}
+```
+
+### get请求单参多值
+
+可以使用 `config.sameQueryParam` 对 `get` 参数进行处理
+
+- 获取参数值始终为字符串
+
+```ts filename="src/config/config.default.ts"
+config.sameQueryParam = {
+  ebable: true,
+  isArray: false,
+}
+```
+
+```ts
+@Get("/users/by-multiple-ids")
+getUsers(@QueryParam("ids", { isArray: true}) ids: string[]) {
+}
+
+// GET /users/by-multiple-ids?ids=a → ids = 'a' 
+// GET /users/by-multiple-ids?ids=a&ids=b → ids = 'a,b'
+```
+
+- 获取参数值始终为数组
+
+```ts filename="src/config/config.default.ts"
+config.sameQueryParam = {
+  ebable: true,
+  isArray: true,
+}
+```
+
+```ts
+@Get("/users/by-multiple-ids")
+getUsers(@QueryParam("ids", { isArray: true}) ids: string[]) {
+}
+
+// GET /users/by-multiple-ids?ids=a → ids = ['a'] 
+// GET /users/by-multiple-ids?ids=a&ids=b → ids = ['a', 'b']
+```
+
+## 获取 Post 参数
+
+- 获取通过 `post` 传递的参数
+
+### @Body
+
+```ts {3}
+@Post("/users")
+saveUser(
+  @Body() user:{name: string; age: number}
+) {
+  // 这里可以访问 user.name, user.age
+}
+```
+
+### @BodyParam
+
+```ts {3-4}
+@Post("/users")
+saveUser(
+  @BodyParam("name") name: string,
+  @BodyParam("age") age: number,
+) {
+  // 这里可以访问 name, age
+}
+```
+
+## 获取 Header 参数
+
+- 获得 `htttp` `header` 头部信息
+
+### @HeaderParam
+
+```ts {3}
+@Post("/users")
+saveUser(
+  @HeaderParam("authorization") token: string
+) {
+  // 这里可以获得 token
+}
+```
+
+### @HeaderParams
+
+```ts {3}
+@Post("/users")
+saveUser(
+  @HeaderParams() header: {token: string}
+) {
+  // 这里可以获得 header.token
+}
+```
+
+## 获得 Cookie 信息
+
+- 用于获取 `http` `cookie` 头信息
+
+### @CookieParam
+
+```ts {3}
+@Get("/users")
+getUsers(
+  @CookieParam("username") username: string
+) {
+  // 这里可以获得 username
+}
+```
+
+### @CookieParams
+
+```ts {3}
+@Get("/users")
+getUsers(
+  @CookieParams() cookies: { username: string }
+) {
+  // 这里可以获得 cookies.username
+}
+```
+
+## 获得 Session  信息
+
+- 用于获取 `session` 值
+
+### @SessionParam
+
+```ts {3}
+@Get("/login")
+savePost(
+  @SessionParam("user") user: User, 
+  @Body() post: Post
+) {}
+```
+
+### @Session
+
+```ts {3}
+@Get("/login")
+savePost(
+  @Session() session: any, 
+  @Body() post: Post
+) {}
+```
+
+<Callout type="default">
+  `@Session` 装饰器装饰的参数默认为必填。如果你的方法中该参数是可选的，需要手动标记为非必填
+</Callout>
+
+```ts {2}
+action(
+  @Session("user", { required: false }) user: User
+){}
+```
+
+## 限制必填参数
+
+在装饰器配置 `required: true` 限制参数为必填：
+
+```ts {4}
+@Post("/users")
+save(
+  @Body({ 
+    required: true 
+  }) user: any
+) {
+  // 如果请求内没有user参数，该方法不会执行
+}
+```
+
+<Callout type="default">
+  可以在其它任何参数装饰器中限制必填参数，如 `@QueryParam`, `@BodyParam` 等。 如果请求中没有必填参数，`yunfly` 框架将抛出一个错误。
+</Callout>
+
+## 设置 ContentType
+
+为路由设置 `ContentType`：
+
+```ts {2}
+@Get("/users")
+@ContentType("text/cvs")
+getUsers() {
+    // ...
+}
+```
+
+## 设置 Location
+
+为路由设置 `Location`：
+
+```ts {2}
+@Get("/users")
+@Location("http://github.com")
+getUsers() {
+    // ...
+}
+```
+
+## 设置重定向
+
+为路由设置重定向：
+
+```ts {2}
+@Get("/users")
+@Redirect("http://github.com")
+getUsers() {
+    // ...
+}
+```
+
+通过返回字符串覆写重定向地址：
+
+```ts {2}
+@Get("/users")
+@Redirect("http://github.com")
+getUsers() {
+    return "https://www.google.com";
+}
+```
+
+使用模板生成重定向：
+
+```ts {2}
+@Get("/users")
+@Redirect("http://github.com/:owner/:repo")
+getUsers() {
+    return {
+        owner: "pleerock",
+        repo: "@yunflyjs/yunfly"
+    };
+}
+```
+
+## 设置 HTTP 响应代码
+
+可以显式设置 HTTP 响应代码：
+
+```ts {1}
+@HttpCode(201)
+@Post("/users")
+saveUser(@Body() user: User) {
+    // ...
+}
+```
+
+## 管理空响应
+
+对于返回 `void` 或 `Promise<void>` 或 `undefined` 的控制器方法，将自动向客户端抛出 `404` 错误。 `@OnUndefined` 装饰器可用于设置这种情况下的状态码。
+
+```ts {2}
+@Delete("/users/:id")
+@OnUndefined(204)
+async remove(@Param("id") id: number): Promise<void> {
+    return userRepository.removeById(id);
+}
+```
+
+对于返回值可能为 `undefined` 的情况，`@OnUndefined` 也可以发挥作用。
+
+下面例子中，当用户 `id` 不存在时 `findOneById` 返回 `undefined`，该路由将返回 `404` 代码，如果存在则返回 `200` 代码：
+
+```ts
+@Get("/users/:id")
+@OnUndefined(404)
+getOne(@Param("id") id: number) {
+    return userRepository.findOneById(id);
+}
+```
+
+当结果为 `undefined` 时也可以返回一个错误类：
+
+```ts
+import { HttpError } from '@yunflyjs/yunfly';
+
+export class UserNotFoundError extends HttpError {
+  constructor() {
+    super(404, 'User not found!');
+  }
+}
+@Get("/users/:id")
+@OnUndefined(UserNotFoundError)
+saveUser(@Param("id") id: number) {
+    return userRespository.findOneById(id);
+}
+```
+
+如果控制器方法返回 `null` 可以用 `@OnNull` 装饰器替代。
+
+## 自定义 Header
+
+定义任意 `Header` 信息：
+
+```ts {2}
+@Get("/users/:id")
+@Header("Catch-Control", "none")
+getOne(@Param("id") id: number){
+    // ...
+}
+```
+
+## 抛出 HTTP 错误
+
+抛出 HTTP 错误请参考 错误类使用章节：[错误类使用](../high-function/err-class-use)
+
+## 使用中间件
+
+`@Middleware` 装饰器用于自定义中间件， `@UseBefore` 和 `@UseAfter` 装饰器使用任何已有的或自定义的 `Koa` 中间件。
+
+### @UseBefore
+
+中间件执行之前做什么事情
+
+```ts {5}
+import { Controller, Get, UseBefore } from "@yunflyjs/yunfly";
+// ...
+
+@Get("/users/:id")
+@UseBefore(CheckParams)
+getOne(@Param("id") id: number) {
+  // ...
+}
+```
+
+### @UseAfter
+
+中间件执行之后做什么事情
+
+```ts {5}
+import { Controller, Get, UseBefore } from "@yunflyjs/yunfly";
+// ...
+
+@Get("/users/:id")
+@UseAfter(RecordLog)
+getOne(@Param("id") id: number) {
+  // ...
+}
+```
+
+### 在方法中使用中间件
+
+```ts {7}
+import { Controller, Get, UseBefore } from "@yunflyjs/yunfly";
+let compression = require("compression");
+
+// ...
+
+@Get("/users/:id")
+@UseBefore(compression())
+getOne(@Param("id") id: number) {
+    // ...
+}
+```
+
+### 在控制器中使用中间件
+
+```ts {5}
+import { Controller, UseBefore } from '@yunflyjs/yunfly';
+let compression = require('compression');
+
+@Controller()
+@UseBefore(compression())
+export class UserController {}
+```
+
+## 自定义中间件
+
+### 定义一个普通中间件
+
+```ts filename="src/middleware/MyMiddleware.ts"
+import { KoaMiddlewareInterface } from "@yunflyjs/yunfly";
+export class MyMiddleware implements KoaMiddlewareInterface {
+  async use(context: any, next: (err?: any) => Promise<any>): Promise<any> {
+      console.log("do something before execution...");
+      return await next()
+      console.log("do something after execution...");
+  }
+}
+```
+
+#### 普通中间件应用
+
+- Controller 中应用
+
+```ts {6-7}
+import {Controller, UseBefore, UseAfter} from "@yunflyjs/yunfly";
+import {MyMiddleware} from "./MyMiddleware";
+import {loggingMiddleware} from "./loggingMiddleware";
+//...
+@Controller()
+@UseBefore(MyMiddleware)
+@UseAfter(loggingMiddleware)
+export class UserController {
+  // ...
+}
+```
+
+- 方法中使用
+
+```ts {5-6}
+import { Get, UseBefore, UseAfter} from "@yunflyjs/yunfly";
+import {MyMiddleware} from "./MyMiddleware";
+import {loggingMiddleware} from "./loggingMiddleware";
+@Get("/users/:id")
+@UseBefore(MyMiddleware)
+@UseAfter(loggingMiddleware)
+getOne(@Param("id") id: number) {
+  // ...
+}
+```
+
+### 定义一个全局中间件
+
+```ts filename="src/middleware/MyMiddleware.ts"
+import { KoaMiddlewareInterface,Middleware } from "@yunflyjs/yunfly";
+
+@Middleware({ type: 'before' })
+export class MyMiddleware implements KoaMiddlewareInterface {
+  async use(context: any, next: (err?: any) => Promise<any>): Promise<any> {
+      console.log("do something before execution...");
+      await next()
+      console.log("do something after execution...");
+  }
+}
+```
+#### 全局中间件应用
+
+```ts filename="src/config/config.default.ts" {2}
+config.routingControllersOptions = {
+  middlewares: [path.join(__dirname, '../middleware/*')],
+};
+```
+
+#### 更多中间件装饰器说明
+
+| 标识 | 示例 | 描述 |
+| ------ | ------ | ------ |
+| @Middleware(\{type: "before"\|"after"\}) | @Middleware(\{ type: "before"\}) class SomeMiddleware | 注册全局中间件 |
+| @UseBefore() | @UseBefore(CompressionMiddleware)| 请求开始前调用  |
+| @UseAfter() | @UseAfter(CompressionMiddleware) | 请求结束后调用  |
+| @Interceptor() | @Interceptor() class SomeInterceptor | 注册全局拦截器  |
+| @UseInterceptor() | @UseInterceptor(BadWordsInterceptor) | 拦截 `Controller` / `Action`，替换某些值 |
+
+## 其他装饰器
+
+有时候我们需要对接口进行鉴权，这时就需要用到 `@Authorized` 装饰器了。
+如下图，我们示范如何在 `yunfly` 使用 `@Authorized`。
+
+- 1. `config.default.ts` 增加对 `routingControllersOptions` 配置：
+
+```ts filename="src/config/config.default.ts" {3-15}
+{
+  config.routingControllersOptions = {
+    // 代码Demo
+    authorizationChecker: async (action: Action, roles: string[]) => {
+      // 这里可以使用action中的request/response对象
+      // 如果装饰器定义了可以访问action角色
+      // 也可以使用它们来提供详细的鉴权
+      // checker必须返回boolean类型(true or false)或者Promise(回执也必须是boolean)
+      const token = action.request.headers['authorization'];
+
+      const user = await getEntityManager().findOneByToken(User, token);
+      if (user && !roles.length) return true;
+      if (user && roles.find(role => user.roles.indexOf(role) !== -1)) return true;
+
+      return false;
+    })
+  }
+}
+```
+
+- 2. 在路由中使用 @Authorized
+
+```ts filename="src/controller/UserController.ts" {5,9}
+import { Controller, Post, Authorized, Body } from '@yunflyjs/yunfly';
+
+@Controller()
+export class UserController {
+  @Authorized()
+  @Post('/questions')
+  save(@Body() question: Question) {}
+
+  @Authorized('POST_MODERATOR') // 指定角色或角色数组
+  @Post('/posts')
+  save(@Body() post: Post) {}
+}
+```
+
+更多装饰器说明
+
+| 标识 | 示例 | 描述 |
+| ------ | ------ | ------ |
+| @Authorized(roles?: string\|string[]) | @Authorized("SUPER_ADMIN") get() | 授权检查 |
+| @CurrentUser(options?: \{ required?: boolean \}) | get(@CurrentUser(\{ required: true \}) user: User)| 注入当前授权的用户 |
+| @Header(headerName: string, headerValue: string) | @Header("Cache-Control", "private") get() | 自定义相应头部信息 |
+| @ContentType(contentType: string) | @ContentType("text/csv") get() | 自定义响应头部 `HTTP Content-Type` 信息 |
+| @Location(url: string) | @Location("http://github.com") get() | 自定义响应头部 `HTTP Location` 信息 |
+| @Redirect(url: string) | @Redirect("http://github.com") get() | 自定义响应头部 `HTTP Redirect` 信息 |
+| @HttpCode(code: number) | @HttpCode(201) post() | 自定义响应 `HTTP code` |
+| @OnNull(codeOrError: number\|Error) | @OnNull(201) post() | 当真实响应的 `HTTP code`  为 `null` 时，设置 `HTTP code` |
+| @OnUndefined(codeOrError: number\|Error) | @OnUndefined(201) post() | 当真实响应的 `HTTP code`  为 `undefined` 时，设置 `HTTP code` |
+| @Render(template: string) | @Render("user-list.html") get() | 渲染给定的 `HTML` 模板，控制器返回的数据用作模板变量 |
+
+## 自定义装饰器
+
+您也可以通过包装现有装饰器或者采用 `@yunflyjs/yunfly` 提供的方法创建新的装饰器，如下：
+
+- 1. 使用 `@yunflyjs/yunfly` 提供的 `createParamDecorator` 创建参数装饰器
+
+```ts {4-10}
+import { createParamDecorator } from '@yunflyjs/yunfly';
+
+export function UserFromSession(options?: { required?: boolean }) {
+  return createParamDecorator({
+    required: options && options.required ? true : false,
+    value: action => {
+      const token = action.request.headers['authorization'];
+      return database.findUserByToken(token);
+    },
+  });
+}
+
+```
+
+- 2. 通过包装现有装饰器
+  
+```ts {7}
+import { UseAfter } from '@yunflyjs/yunfly';
+import { IResponseType } from '../types';
+import { handleResponseType } from './handle';
+
+export const ResponseType = function (type: IResponseType) {
+  // 进行包装
+  return UseAfter(handleResponseType(type, true));
+};
+```
+
+更多详细用法请参考：https://www.npmjs.com/package/routing-controllers#using-middlewares

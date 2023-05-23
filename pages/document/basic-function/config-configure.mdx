@@ -1,0 +1,192 @@
+# Config 配置
+
+config 主要用来管理插件的启停，插件的配置管理，项目常用变量的聚合等能力。它的核心特性就是区分环境。
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="info">
+  区分环境配置核心依赖 `RUNTIME_ENV` 环境变量。
+</Callout>
+
+## 区分环境
+
+在`src/config` 文件目录下新增如下文件：
+
+- config.default.ts : 默认配置项 （优先级最低）
+- config.local.ts   : 本地环境生效
+- config.test.ts    : 测试环境生效
+- config.release.ts : 预发布环境生效
+- config.prod.ts    : 生产环境生效
+
+<Callout type="default">
+  一般建议最少有一个 `config.default.ts` 文件。
+</Callout>
+
+## 配置特性
+
+- 优先级： `应用 config` > `插件 config` > `框架 config`
+- 环境隔离： 通过不同的环境加载不同的配置项，做到环境的隔离（备注：default 配置项在任何环境都会生效）
+- 区分环境：环境配置项里面的配置会覆盖掉 `default` 里面的配置项
+- 所有的配置文件均为非必须项（建议：最少有一个 default 配置文件）
+
+
+### Cluster 配置
+
+```ts filename="src/config/config.default.ts"
+/**
+ * cluster config
+ */
+config.cluster = {
+  enable: false,
+};
+```
+
+| 字段 | 类型 | 必填 | 默认值 |说明 |
+| ------ | ------ |------ |------ | ------ |
+| enable | `boolean` | 否 | false | 是否以 `cluster` 模型启动应用 |
+
+#### 进程数量说明
+
+1. 开发模式下启动一个 `alone` 进程一个 `worker` 进程
+2. 生产环境容器模式下会自动获取容器核数, 启动一个 `alone` 进程容器核数个 `worker` 进程
+3. 非容器环境启动 `cpu` 核数个进程
+
+### RoutingControllersOptions 配置
+
+```ts filename="src/config/config.default.ts"
+/*
+* routing-controllers configs
+* 1. controllers、middlewares、authorizationChecker 需要使用`path.join`进行文件位置的绝对定位
+*/
+config.routingControllersOptions = {
+  currentUserChecker,
+  defaultErrorHandler: false,
+  controllers: [path.join(__dirname, '../controller/*')],
+  middlewares: [path.join(__dirname, '../middleware/*')],
+  // middlewares: [
+  //   require(path.join(__dirname,'../middleware/xxxMiddleware')).default,
+  // ]
+  defaults: {
+    nullResultCode: 200,  // 204 | 404
+    undefinedResultCode: 200 // 204 | 404
+  }
+};
+```
+
+- RoutingControllersOptions 参数说明
+
+| 字段 | 类型 | 必填  |说明 |
+| ------ | ------ |------  | ------ |
+| currentUserChecker | `function` | 否 | 向 `ctx.state.payload` 中注入数据 |
+| controllers | `string[]` | 否  | `controllers` 文件列表 |
+| middlewares | `string[]` | 否  | `middlewares` 文件列表 |
+| defaults | `Object` | 否  | 异常处理配置信息 |
+
+### Error 配置
+
+<Callout type="default">
+  Error 配置需要安装 `@yunflyjs/yunfly-plugin-error` 插件。[插件使用文档](./catch-error.mdx)
+</Callout>
+
+```ts filename="src/config/config.default.ts"
+/**
+ * error handle
+ */
+config.error = {
+  enable: true,
+
+  // use yunfly default error log.
+  useYunflyLog: true,
+
+  /**
+   * 错误码
+   * Type: number | true | Record<Key, Key>
+   */
+  errCode: true,
+
+  // 是否开启 HTTP 状态码
+  enableHttpCode: false,
+
+  // 是否返回 rpc 错误信息
+  useRpcErrorMessage: true,
+
+  // 是否返回错误详情
+  showMessageDetail: true,
+
+  /* Customize your error fn. （Optional） */
+  // customError: async (err: any, ctx: Context) => {}
+
+  unhandledRejection: (err: any) => {
+    console.error('UnhandledRejection error, at time', Date.now(), 'reason:', err);
+  },
+  uncaughtException: (err: any) => {
+    console.error('uncaughtException error, at time', Date.now(), 'reason:', err);
+  },
+};
+```
+
+| 字段| 类型    | 默认值  | 必填    | 说明     |
+| ---------- | -------- | ------- | --------- | ------- |
+| enable             | `boolean`                             | `true`  | 是  | 是否开启错误处理      |
+| errCode            | `number/true/Record<Key, Key>`    | `2`     | 否      | 错误码              |
+| useYunflyLog       | `boolean`                             | `true`  | 否  | 是否开启日志记录      |
+| enableHttpCode     | `boolean`                             | `false` | 否  | 是否开启 HTTP 状态码  |
+| useRpcErrorMessage | `boolean`                             | `true`  | 否  | 是否返回 rpc 错误信息  |
+| showMessageDetail  | `boolean`                             | `false` | 否  | 是否返回错误详情   |
+| customError        | `(err: any, ctx: Koa.Context) => any` |         | 否  | 自定义错误，若定义，则不会执行`yunfly-plugin-error`中间件后续逻辑  |
+| customErrorHandle  | `(err: any, ctx: Koa.Context) => any` |         | 否  | 可用于重新组装错误，并不影响`yunfly-plugin-error`中间件后续逻辑的执行  |
+| unhandledRejection | `(err: any, ctx: Koa.Context) => any` |         | 否  | 自定义 Promise 错误   |
+| uncaughtException  | `(err: any, ctx: Koa.Context) => any` |         | 否  | 自定义未能捕获的异常  |
+
+### BodyParser 配置
+
+<Callout type="default">
+  BodyParser 配置需要安装 `@yunflyjs/yunfly-plugin-body-parser` 插件。[插件使用文档](./body-parser.md)
+</Callout>
+
+```ts filename="src/config/config.default.ts"
+// body参数配置
+config.bodyParser = {
+  jsonLimit: '1mb',
+  formLimit: '1mb',
+  queryString: {
+    parameterLimit: 1 * 1024 * 1024,
+  },
+};
+```
+
+| 字段 | 类型 | 必填  |说明 |
+| ------ | ------ |------  | ------ |
+| jsonLimit | `string` | 否 | `json` 格式数据上传大小限制 |
+| jsonLimit | `string` | 否 | 表单提交数据大小限制 |
+| queryString | `Object` | 否 | `url` 上传数据大小限制 |
+
+### CurrentContext 配置
+
+<Callout type="default">
+  CurrentContext 配置需要安装 `@yunflyjs/yunfly-plugin-current-context` 插件。[插件使用文档](./catch-error.mdx)
+</Callout>
+
+```ts filename="src/config/config.default.ts"
+/**
+ * 在controller,service,util等代码位置直接获取context对象
+ */
+config.currentContext = {
+  enable: true,
+}
+```
+
+| 字段 | 类型 | 必填  |说明 |
+| ------ | ------ |------  | ------ |
+| enable | `boolean` | 是 | 是否启用插件 |
+
+### Socket 配置
+
+```ts filename="src/config/config.default.ts"
+// socket
+config.socket = {
+  enable: false,
+  type: 'worker', // 可选值 worker: 随机选择一个worker执行， all: 所有worker都执行, 默认为worker
+  path: '/',
+};
+```

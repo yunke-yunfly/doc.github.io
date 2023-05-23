@@ -1,0 +1,60 @@
+# Context 活动对象
+
+在框架中想要获取 `context` 活动对象需要一层一层的传递。`current` 插件提供能在任意位置(不限于 controller、servicer、plugin、function)获取当前的 `context` 对象。
+
+## 使用
+
+- 1. 安装依赖
+
+```ts
+yarn add @yunflyjs/yunfly-plugin-current-context
+```
+- 2. `config.plugin.ts` 中声明插件
+
+```ts src/config/config.plugin.ts {3-5}
+const plugins: { [key: string]: string }[] = [
+  {
+    name: 'currentContext',
+    package: '@yunflyjs/yunfly-plugin-current-context',
+    priority: 3
+  },
+];
+export default plugins;
+```
+
+- 3. 开启配置
+
+```ts filename="src/config/config.default.ts" {2}
+config.currentContext = {
+    enable: true // 默认值：false
+};
+```
+
+### 自定义函数中获取ctx对象
+
+```ts {4}
+import { getCurrentContext } from '@yunflyjs/yunfly-plugin-current-context'
+// 获得koa 的 ctx对象
+const ctx = getCurrentContext();
+```
+
+### 在 Service 中获取ctx对象
+
+```ts filename="src/service/ExampleService.ts" {11}
+// service
+import { getCurrentContext } from '@yunflyjs/yunfly-plugin-current-context'
+import { Context } from '@yunflyjs/yunfly'
+import { Service } from "typedi";
+
+@Service()
+export default class ExampleService {
+
+  async getContextInService(): Promise<Object> {
+    // 在service代码中获取当前的context对象
+    const ctx: Context = getCurrentContext();
+    const res = {
+      config: ctx.config,
+    }
+  }
+}
+```

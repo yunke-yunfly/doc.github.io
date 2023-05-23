@@ -1,0 +1,183 @@
+# 中间件(Middleware)
+
+BFF中间件就是 `koa` 中间件，`koa` 中间件是洋葱圈模型。每次我们编写一个中间件，就相当于在洋葱外面包了一层。
+
+## 从目录加载中间件
+
+在 `config.routingControllersOptions.middlewares` 中指定文件夹，即可加载该目录下所有全局中间件：
+
+```ts filename="src/config/config.default.ts" {2}
+config.routingControllersOptions = {
+  middlewares: [path.join(__dirname, '../middleware/*')],
+};
+```
+
+## 开发中间件
+
+- 开发一个普通中间件
+
+```ts filename="src/middleware/MyMiddleware.ts"
+import { KoaMiddlewareInterface, Context } from "@yunflyjs/yunfly";
+
+export class MyMiddleware implements KoaMiddlewareInterface {
+    async use(context: Context, next: (err?: any) => Promise<any>): Promise<any> {
+        console.log("do something before execution...");
+        await next()
+        console.log("do something after execution...");
+    }
+}
+```
+
+## 使用中间件
+
+### `Controler` 级别中间件
+
+- 你可以对一个 `Controler` 使用自定义的中间件
+
+import { Callout } from 'nextra-theme-docs'
+
+<Callout type="info">
+  使用 `@UseBefore` 和 `@UseAfter` 来决定中间件的执行时机
+</Callout>
+
+
+```ts {4}
+import { Controller, UseBefore, UseAfter } from "@yunflyjs/yunfly";
+import { MyMiddleware } from "./MyMiddleware";
+//...
+@Controller()
+@UseBefore(MyMiddleware)
+export class UserController {
+    // ...
+}
+```
+
+### `Method` 级别中间件
+
+- 可以只针对于某个 `Method` 使用中间件
+
+<Callout type="info">
+  使用 `@UseBefore` 和 `@UseAfter` 来决定中间件的执行时机
+</Callout>
+
+## method 中间件
+
+如果您只需中间件作用于具体的方法，则是在方法前进行注入。如下面注入的 `@UseBefore` 和 `@UseAfter`，只作用于 `getOne` 方法。
+
+```ts {5}
+import { Get, UseBefore, UseAfter } from "@yunflyjs/yunfly";
+import { MyMiddleware } from "./MyMiddleware";
+
+@Get("/users/:id")
+@UseBefore(MyMiddleware)
+getOne(@Param("id") id: number) {
+    // ...
+}
+```
+
+## 全局中间件
+
+<Callout type="info">
+  `Controller` 和 `Method` 级别中间件都是手动配置，自定义使用位置。
+</Callout>
+
+- 全局中间件的含义跟 `koa` 中间件一致，即不需要手动申明，配置一次全局生效。
+
+升级为全局中间件只需要在普通中间件基础之上添加 `@Middleware` 中间件即可实现。
+
+```ts filename="src/middleware/MyMiddleware.ts"
+import { KoaMiddlewareInterface, Context, Middleware } from "@yunflyjs/yunfly";
+
+@Middleware({ type: 'before' })
+export class MyMiddleware implements KoaMiddlewareInterface {
+    async use(context: Context, next: (err?: any) => Promise<any>): Promise<any> {
+        console.log("do something before execution...");
+        await next()
+        console.log("do something after execution...");
+    }
+}
+```
+
+- Middleware 参数说明
+
+| 字段 | 类型  |说明 |
+| ------ | ------  | ------ |
+| type | "after" \| "before"  | 执行时机 等效于 `@UseBefore`, `@UseAfter` |
+| priority | boolean  | 优先级，值越小，优先级越高 |
+
+### 使用
+
+`config.default.ts` 文件增加 `routingControllersOptions` 配置进行全局中间件的加载。这样每个请求都会经过这些全局中间件。
+
+```ts filename="src/config/config.default.ts" {3}
+{
+    config.routingControllersOptions = {
+        middlewares: [path.join(__dirname, '../middleware/*')],
+    }
+}
+```
+
+详细中间件使用方式请 [参考文档](https://www.npmjs.com/package/routing-controllers#using-middlewares)
+
+## 插件中间件
+
+你还可以从插件中加载中间件，例如 `@yunflyjs/yunfly-plugin-logger` 中间件。
+
+1. 安装依赖
+
+```ts
+yarn add @yunflyjs/yunfly-plugin-logger
+```
+
+2. 使用插件中间件
+
+```ts filename="src/config/config.plugin.ts" {8-11}
+/**
+ * yunfly 插件
+ * 数组顺序就是插件的加载顺序
+ */
+import { PluginConfig } from '@yunflyjs/yunfly';
+
+const plugins: PluginConfig[] = [
+  {
+    name: 'log',
+    package: '@yunflyjs/yunfly-plugin-logger',
+  },
+];
+
+export default plugins;
+```
+
+3. 配置插件参数
+
+```ts filename="src/config/config.default.ts"
+config.log = {
+    enable: true,
+    ......
+}
+```
+
+- 插件中间件[代码案例](../high-function/plugin-dev#中间件插件)
+
+## 中间件执行顺序
+
+### 执行顺序
+
+插件中间件 > 项目业务中间件
+
+### 中间件权重
+
+`priority` 参数可以调整中间件执行顺序，数字越大，执行顺序越靠前。
+
+```ts {3}
+import { KoaMiddlewareInterface, Context, Middleware } from '@yunflyjs/yunfly';
+
+@Middleware({ type: 'before', priority: 10 })
+export class MyMiddleware implements KoaMiddlewareInterface {
+  async use(context: Context, next: (err?: any) => Promise<any>): Promise<any> {
+    console.log('当前中间件权重为10');
+    return await next();
+  }
+}
+```
+

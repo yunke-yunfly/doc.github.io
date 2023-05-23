@@ -1,0 +1,15 @@
+{
+  "directory-struct": "目录结构",
+  "config-configure": "Config 配置",
+  "plugin-config": "插件配置",
+  "middleware-config": "中间件配置",
+  "controller": "控制器(Controller)",
+  "middleware": "中间件(Middleware)",
+  "service": "服务(service)",
+  "body-parser": "获取Post参数",
+  "logger": "日志",
+  "catch-error": "异常处理",
+  "lifehook": "生命周期",
+  "plugin": "插件",
+  "timing-task": "定时任务"
+}

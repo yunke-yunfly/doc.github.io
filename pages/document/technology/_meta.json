@@ -1,0 +1,9 @@
+{
+  "grpc": "grpc",
+  "http": "http",
+  "apm": "elastic-apm",
+  "prometheus": "Prometheus",
+  "redis": "Redis",
+  "prisma": "prisma",
+  "socket": "Socket"
+}
