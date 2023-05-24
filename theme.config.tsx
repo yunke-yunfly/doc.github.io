@@ -27,7 +27,7 @@ const config: DocsThemeConfig = {
   },
   head: (
     <>
-      <meta property="og:title" content="nextra-doc" />
+      <meta property="og:title" content="yunfly-doc" />
       <meta property="og:description" content="一款高效的 Node.js Web 框架。" />
     </>
   ),
