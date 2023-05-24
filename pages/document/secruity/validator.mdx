@@ -16,7 +16,7 @@ import { Get, JsonController, QueryParams } from '@yunflyjs/yunfly';
 import { IsEmail, MinLength, MaxLength } from 'class-validator';
  
 class ParamsVa {
-  @IsEmail({}, {
+  @IsEmail({
     message: 'email 字段不符合邮箱规范!'
   })
   email: string;
