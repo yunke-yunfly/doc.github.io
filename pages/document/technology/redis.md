@@ -72,8 +72,8 @@ config.redis = {
 ```ts
 import { redis } from @yunflyjs/yunfly-plugin-redis
 
-redis.set('key','example');
-redis.get('key');
+await redis.set('key','example');
+await redis.get('key');
 ```
 
 ## 参数说明
