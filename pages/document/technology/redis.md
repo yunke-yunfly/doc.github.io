@@ -34,7 +34,7 @@ config.redis = {
 
 - 函数
 
-```js
+```js filename="src/config/config.default.ts"
 config.redis = () => {
   const host = apolloConfig['EXAMPLE-REDIS-HOST'];
   const password = apolloConfig['EXAMPLE-REDIS-PASSWORD'];
@@ -50,7 +50,7 @@ config.redis = () => {
 
 - cluster 模式
 
-```js
+```js filename="src/config/config.default.ts"
 config.redis = {
   enable: true,
   startupNodes: [
