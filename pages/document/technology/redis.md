@@ -24,7 +24,7 @@ export default plugins;
 
 - 对象
 
-```js
+```js filename="src/config/config.default.ts"
 config.redis = {
   enable: true,
   host: '127.0.0.1',
