@@ -10,7 +10,7 @@ yarn add @yunflyjs/yunfly-plugin-redis
 
 - 2. `config.plugin.ts` 中声明插件
 
-```ts title="src/config/config.plugin.ts"
+```ts filename="src/config/config.plugin.ts"
 const plugins: { [key: string]: string }[] = [
   {
     name: 'redis',
