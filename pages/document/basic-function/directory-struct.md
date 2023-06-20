@@ -25,6 +25,11 @@
 │    ├── schedule
 │    │  └── task1.ts
 │    │  └── task2.ts
+│    ├── socket
+│    │  ├── controller
+│    │  │   └── MainController.ts     
+│    │  └── middleware
+│    │      └── socketMiddleware.ts
 │    ├── plugin
 │    │   └── yunfly-plugin-email
 │    │       ├── src
