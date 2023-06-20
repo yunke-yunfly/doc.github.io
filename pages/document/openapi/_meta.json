@@ -1,5 +1,5 @@
 {
   "openapi": "框架生成OpenAPI数据",
-  "jsonschema": "TS生成JsonSchema数据",
+  "jsonschema": "ts生成JsonSchema数据",
   "request": "OpenAPI数据生成前端代码"
 }
