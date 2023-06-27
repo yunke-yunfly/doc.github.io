@@ -75,7 +75,7 @@ npx gen-request
 | bannerComment  | 顶部注释              | string         | 否       |           |
 | prettierConfig | prettier 配置文件路径 | string         | 否       | -         |
 
-### middleman
+### openapi
 
 必填参数。
 
