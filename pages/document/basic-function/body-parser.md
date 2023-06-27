@@ -40,6 +40,8 @@ config.bodyParser = {
 
 ## 使用案例
 
+- 获取 post 请求参数
+
 ```ts filename = "src/controller/ExampleController.ts" {8,10}
 import { JsonController, BodyParam, Post, Ctx, Context } from '@yunflyjs/yunfly';
 
@@ -51,6 +53,24 @@ export default class ExampleController {
     @BodyParam('name') name: string,
   ): string {
     const request = ctx.request?.body;
+    return request;
+  }
+}
+```
+
+- 获取 get 请求参数
+
+```ts filename = "src/controller/ExampleController.ts" {8,10}
+import { JsonController, QueryParam, Get, Ctx, Context } from '@yunflyjs/yunfly';
+
+@JsonController('/example')
+export default class ExampleController {
+  @Get('/simple/get')
+  simple1(
+    @Ctx() ctx: Context,
+    @QueryParam('name') name: string,
+  ): string {
+    const request = ctx.request?.request;
     return request;
   }
 }
