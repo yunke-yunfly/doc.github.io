@@ -7,5 +7,5 @@
   "secruity": "secruity",
   "redis": "redis",
   "prisma": "prisma",
-  "rete-limiter": "rete-limiter"
+  "rate-limiter": "rate-limiter"
 }
