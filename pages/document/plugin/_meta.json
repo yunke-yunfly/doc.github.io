@@ -1,3 +1,5 @@
 {
-  "yunfly-plugin-body-parser": "body-parser"
+  "body-parser": "body-parser",
+  "error": "error",
+  "current-context": "current-context"
 }
