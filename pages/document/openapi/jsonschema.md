@@ -1,11 +1,5 @@
 # fast-typescript-to-jsonschema
 
-[![npm version](https://img.shields.io/npm/v/fast-typescript-to-jsonschema.svg)](https://www.npmjs.com/package/fast-typescript-to-jsonschema)
-![Test](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/workflows/Test/badge.svg)
-[![codecov](https://codecov.io/gh/yunke-yunfly/fast-typescript-to-jsonschema/branch/master/graph/badge.svg)](https://app.codecov.io/gh/yunke-yunfly/fast-typescript-to-jsonschema)
-
-简体中文 | [English](./README.md)
-
 生成typescript类型的jsonschema数据
 
 ## 特性
@@ -168,9 +162,9 @@ interface Interface_4 {
 }
 ```
 
-> 更多支持的类型解析[请看](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/index.md),目录如下:
+> 更多支持的类型解析[请看](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/index\\.md),目录如下:
 
-- [接口](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/interface.md)
+- [接口](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/interface\\.md)
   - [1.1简单类型](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/interface.md#接口)
   - [1.2联合类型](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/interface.md#12联合类型)
   - [1.3交叉类型](https://github.com/yunke-yunfly/fast-typescript-to-jsonschema/blob/master/docs/interface.md#13交叉类型)
