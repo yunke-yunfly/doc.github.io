@@ -1,4 +1,4 @@
-# @yunflyjs/yunfly-plugin-jwt
+# @yunflyjs/yunfly-plugin-fast-jwt
 
 JSON Web Token (JWT)是一个开放标准(RFC 7519)，它定义了一种紧凑的、自包含的方式，用于作为JSON对象在各方之间安全地传输信息。该信息可以被验证和信任，因为它是数字签名的。
 

@@ -2,5 +2,10 @@
   "body-parser": "body-parser",
   "error": "error",
   "current-context": "current-context",
-  "apm": "apm"
+  "apm": "apm",
+  "jwt": "jwt",
+  "secruity": "secruity",
+  "redis": "redis",
+  "prisma": "prisma",
+  "rete-limiter": "rete-limiter"
 }
