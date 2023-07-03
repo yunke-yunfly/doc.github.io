@@ -175,12 +175,6 @@ workerClient.subscribe({ key: 'alone-to-worker' }, (val: any) => {
 
 #### worker 进程给 alone 进程发送消息
 
-* 先安装依赖
-
-```shell
-yarn add sendmessage
-```
-
 * 代码示例
 
 worker 进程发送消息代码
@@ -217,12 +211,6 @@ process.on('message',(msg) => {
 | data | `any` | 发送的消息 |
 
 #### alone 进程给 worker 进程发送消息
-
-* 先安装依赖
-
-```shell
-yarn add sendmessage
-```
 
 * 代码示例
 
