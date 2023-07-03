@@ -169,9 +169,9 @@ workerClient.subscribe({ key: 'alone-to-worker' }, (val: any) => {
 | close | `fn` | 关闭订阅 |
 
 ### 通过 master 进程转发通信
-1. `worker` 进程是 node.js 模块中的 `cluster fork 出来的 worker 进程`，因此它可以和 app 进程进行通信
-2. `alone` 进程是使用 node.js 模块中的 `child_process fork出来的worker进程`，因此它也可以和 app 进程进行通信
-3. 因为进程间是独立的，worker 进程和 alone 进程也没有父子级关系，因此`它们之间不能相互通信`。要做到相互通信需要`通过 app 进程进行转发`，转发规则可看下面代码示例。
+1. `worker` 进程是 node.js 模块中的 `cluster fork 出来的 worker 进程`，因此它可以和 master 进程进行通信
+2. `alone` 进程是使用 node.js 模块中的 `child_process fork出来的worker进程`，因此它也可以和 master 进程进行通信
+3. 因为进程间是独立的，worker 进程和 alone 进程也没有父子级关系，因此`它们之间不能相互通信`。要做到相互通信需要`通过 master 进程进行转发`，转发规则可看下面代码示例。
 
 #### worker 进程给 alone 进程发送消息
 
