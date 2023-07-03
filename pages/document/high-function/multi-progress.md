@@ -159,6 +159,7 @@ workerClient.subscribe({ key: 'alone-to-worker' }, (val: any) => {
 ```
 
 - socket 直连通信支持的api说明
+
 | 字段 | 类型 | 说明 |
 | ------ | ------ |------ |
 | subscribe | `listener function` | 订阅函数 |
