@@ -119,19 +119,21 @@ export default function Alone(config: any) {
 worker 进程发送消息代码
 
 ```ts
-const { workerClient } = require('@yunflyjs/yunfly');
+const { getWorkerClient } = require('@yunflyjs/yunfly');
+const client = getWorkerClient();
 
 // 发送消息
-workerClient.publish({ key: 'worker-to-alone', value: 'from worker msg to alone process ' });
+getWorkerClient.publish({ key: 'worker-to-alone', value: 'from worker msg to alone process ' });
 ```
 
 alone 进程接收消息代码
 
 ```ts
-const { aloneClient } = require('@yunflyjs/yunfly-cluster');
+const { getAloneClient } = require('@yunflyjs/yunfly-cluster');
+const client = getAloneClient();
 
-aloneClient.subscribe({ key: 'worker-to-alone' }, (val: any) => {
-  console.log(`Child_Process ${process.pid} client get val: ${val}, leader: ${aloneClient.isClusterClientLeader}`);
+client.subscribe({ key: 'worker-to-alone' }, (val: any) => {
+  console.log(`Child_Process ${process.pid} client get val: ${val}, leader: ${client.isClusterClientLeader}`);
 });
 ```
 
@@ -142,19 +144,21 @@ aloneClient.subscribe({ key: 'worker-to-alone' }, (val: any) => {
 alone 进程发送消息代码
 
 ```ts
-const { aloneClient } = require('@yunflyjs/yunfly');
+const { getAloneClient } = require('@yunflyjs/yunfly');
+const client = getAloneClient();
 
 // 发送消息
-aloneClient.publish({ key: 'alone-to-worker', value: 'from alone msg to worker process' });
+client.publish({ key: 'alone-to-worker', value: 'from alone msg to worker process' });
 ```
 
 worker 进程接收消息代码
 
 ```ts
-const { workerClient } = require('@yunflyjs/yunfly-cluster');
+const { getWorkerClient } = require('@yunflyjs/yunfly-cluster');
+const client = getWorkerClient();
 
-workerClient.subscribe({ key: 'alone-to-worker' }, (val: any) => {
-  console.log(`Worker ${process.pid} client get val: ${val}, leader: ${workerClient.isClusterClientLeader}`);
+client.subscribe({ key: 'alone-to-worker' }, (val: any) => {
+  console.log(`Worker ${process.pid} client get val: ${val}, leader: ${client.isClusterClientLeader}`);
 });
 ```
 
