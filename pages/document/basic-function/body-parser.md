@@ -6,34 +6,18 @@
 
 ## 使用
 
-1. 安装依赖
+插件已内置在框架中，开启即可使用。
 
-```ts
-yarn add @yunflyjs/yunfly-plugin-body-parser
-```
-
-2. `config.plugin.ts` 中声明插件
-
-```ts filename="src/config/config.plugin.ts"
-const plugins: { [key: string]: string }[] = [
-  {
-    name: 'bodyParser',
-    package: '@yunflyjs/yunfly-plugin-body-parser',
-    priority: 5
-  },
-];
-export default plugins;
-```
-
-3. `config.default.ts` 配置项 （可选）
+1. `config.default.ts` 配置项 （可选）
 
 ```ts filename="src/config/config.default.ts"
 // body参数配置
 config.bodyParser = {
-  jsonLimit: '1mb',
-  formLimit: '1mb',
+  enable: true,
+  jsonLimit: '5mb',
+  formLimit: '5mb',
   queryString: {
-    parameterLimit: 1 * 1024 * 1024,
+    parameterLimit: 5 * 1024 * 1024,
   },
 };
 ```
