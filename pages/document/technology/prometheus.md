@@ -8,27 +8,60 @@ sidebar_position: 4
 
 Node应用错误信息，接口请求次数，RPC性能，HTTP请求性能数据分析与统计，实时查看当前服务QPS,容器运行状况，Node使用资源情况等。 并能自定义各种指标，从而进行监控告警。
 
+> 1. 支持多进程 cluster 模型
+> 2. 支持自定义指标
+
 ## 使用
 
-- 安装依赖
+1. 安装依赖
 
 ```shell
 yarn add @yunflyjs/yunfly-plugin-prometheus
 ```
 
-- 增加config配置项（可选配置，可忽略）：
+2. `config.plugin.ts` 中声明插件
 
-```js filename="config.default.ts"
+```ts filename="src/config/config.plugin.ts"
+const plugins: {[key:string]: string}[] = [
+  {
+    name: 'prometheus',
+    package: '@yunflyjs/yunfly-plugin-prometheus'
+  }
+];
+export default plugins;
+```
+
+3. `config.default.ts` 中启用插件
+
+```js filename="src/config/config.default.ts"
 config.prometheus = {
     enable: true,
-    log: false,
-    resCodeKeyName: 'code',
 }
 ```
 
-备注：
+4. 打开 `metrics` 接口即可查看指标内容
 
-> 升级框架后所有监控指标已经内置， 接下来就是定制我们的图表了。
+```js
+open:  http://127.0.0.1:3000/metrics
+```
+
+## 自定义指标
+
+例如自定义一个 test Counter 类指标
+
+```ts
+import client from '@yunflyjs/yunfly-plugin-prometheus';
+
+// 自定义的test Counter 类指标
+const ClientTestCounter = new client.Counter({
+  name: 'yunfly_test',
+  help: 'Counter for test',
+  labelNames: ['path', 'method'],
+})
+
+// 使用 test Conter 指标
+ClientTestCounter.inc({ path:'xxx', method:'xxx' }, 1);
+```
 
 ## prometheus 内置指标
 
@@ -295,7 +328,7 @@ sum(increase(yunfly_process_exit_total{type="alone"}[5m])) by (app)
 | ---------- | ---------- | ---------- |
 |    type    |   `worker`/`alone`  |  进程类型  |
 
-## BFF告警规则使用说明
+## 指标告警规则使用说明教学
 
 ### `yunfly_client_request_total`
 
@@ -442,3 +475,4 @@ sum(increase(yunfly_process_exit_total{type="alone"}[1h])) by (app, kubernetes_p
 | 字段        | 类型       |    描述    |
 | ---------- | ---------- | ---------- |
 |    type    |   `worker`/`alone`  |  进程类型  |
+

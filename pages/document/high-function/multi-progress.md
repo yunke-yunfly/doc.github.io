@@ -104,19 +104,84 @@ export default function Alone(config: any) {
 
 ## 进程间通信
 
-1. `worker` 进程是 node.js 模块中的 `cluster fork 出来的 worker 进程`，因此它可以和 app 进程进行通信
-2. `alone` 进程是使用 node.js 模块中的 `child_process fork出来的worker进程`，因此它也可以和 app 进程进行通信
-3. 因为进程间是独立的，worker 进程和 alone 进程也没有父子级关系，因此`它们之间不能相互通信`。要做到相互通信需要`通过 app 进程进行转发`，转发规则可看下面代码示例。
+- 进程间通信支持两种模型
+1. 通过 master 转发 alone 与 worker 之间的消息。
+2. 通过进程间直连的 socket 进行消息传递（效率更高）。
 
-### worker 进程给 alone 进程发送消息
+### 进程间 socket 直连通信
 
-* 先安装依赖
+框架内置 `cluster-client` 支持进程间 socket 直连模式。
 
-```shell
-yarn add sendmessage
-```
+#### worker 进程给 alone 进程发送消息
 
 * 代码示例
+
+worker 进程发送消息代码
+
+```ts
+const { getWorkerClient } = require('@yunflyjs/yunfly');
+const client = getWorkerClient();
+
+// 发送消息
+getWorkerClient.publish({ key: 'worker-to-alone', value: 'from worker msg to alone process ' });
+```
+
+alone 进程接收消息代码
+
+```ts
+const { getAloneClient } = require('@yunflyjs/yunfly-cluster');
+const client = getAloneClient();
+
+client.subscribe({ key: 'worker-to-alone' }, (val: any) => {
+  console.log(`Child_Process ${process.pid} client get val: ${val}, leader: ${client.isClusterClientLeader}`);
+});
+```
+
+#### alone 进程给 worker 进程发送消息
+
+* 代码示例
+
+alone 进程发送消息代码
+
+```ts
+const { getAloneClient } = require('@yunflyjs/yunfly');
+const client = getAloneClient();
+
+// 发送消息
+client.publish({ key: 'alone-to-worker', value: 'from alone msg to worker process' });
+```
+
+worker 进程接收消息代码
+
+```ts
+const { getWorkerClient } = require('@yunflyjs/yunfly-cluster');
+const client = getWorkerClient();
+
+client.subscribe({ key: 'alone-to-worker' }, (val: any) => {
+  console.log(`Worker ${process.pid} client get val: ${val}, leader: ${client.isClusterClientLeader}`);
+});
+```
+
+- socket 直连通信支持的api说明
+
+| 字段 | 类型 | 说明 |
+| ------ | ------ |------ |
+| subscribe | `listener function` | 订阅函数 |
+| publish | `fn` | 发送消息 |
+| once | `listener function` | 订阅函数（只订阅一次）|
+| unSubscribe | `fn` | 取消订阅 |
+| close | `fn` | 关闭订阅 |
+
+### 通过 master 进程转发通信
+1. `worker` 进程是 node.js 模块中的 `cluster fork 出来的 worker 进程`，因此它可以和 master 进程进行通信
+2. `alone` 进程是使用 node.js 模块中的 `child_process fork出来的worker进程`，因此它也可以和 master 进程进行通信
+3. 因为进程间是独立的，worker 进程和 alone 进程也没有父子级关系，因此`它们之间不能相互通信`。要做到相互通信需要`通过 master 进程进行转发`，转发规则可看下面代码示例。
+
+#### worker 进程给 alone 进程发送消息
+
+* 代码示例
+
+worker 进程发送消息代码
 
 ```ts
 // worker 进程代码 发送消息
@@ -128,7 +193,11 @@ sendmessage(process,{
   to: 'alone',
   data: 'from worker msg to alone process'
 })
+```
 
+alone 进程接收消息代码
+
+```ts
 // alone 进程代码 接受消息
 process.on('message',(msg) => {
   const {action,from,to,data} = msg || {}
@@ -136,7 +205,6 @@ process.on('message',(msg) => {
     console.log('received msg from worker.msg:',msg)
   }
 })
-
 ```
 
 | 字段 | 类型 | 说明 |
@@ -146,15 +214,11 @@ process.on('message',(msg) => {
 | to | `string` | 值为 `alone`， 标识消息接收进程 |
 | data | `any` | 发送的消息 |
 
-### alone 进程给 worker 进程发送消息
-
-* 先安装依赖
-
-```shell
-yarn add sendmessage
-```
+#### alone 进程给 worker 进程发送消息
 
 * 代码示例
+
+alone 进程发送消息代码
 
 ```ts
 // alone 进程代码 发送消息
@@ -167,7 +231,10 @@ sendmessage(process,{
   type: 'worker',
   data: 'from alone msg to worker process'
 })
+```
 
+worker 进程接收消息代码
+```ts
 // worker 进程代码 接受消息
 process.on('message',(msg) => {
   const {action,from,to,data} = msg || {}
