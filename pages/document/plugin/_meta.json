@@ -8,5 +8,6 @@
   "redis": "redis",
   "prisma": "prisma",
   "rate-limiter": "rate-limiter",
-  "memory-check": "memory-check"
+  "memory-check": "memory-check",
+  "cpuprofile": "cpuprofile"
 }
