@@ -85,7 +85,7 @@ config.routingControllersOptions = {
 ### Error 配置
 
 <Callout type="default">
-  Error 配置需要安装 `@yunflyjs/yunfly-plugin-error` 插件。[插件使用文档](./catch-error.mdx)
+  Error 插件已内置, 开启即可使用。[插件使用文档](./catch-error.mdx)
 </Callout>
 
 ```ts filename="src/config/config.default.ts"
@@ -99,18 +99,18 @@ config.error = {
   useYunflyLog: true,
 
   /**
-   * 错误码
+   * error code
    * Type: number | true | Record<Key, Key>
    */
   errCode: true,
 
-  // 是否开启 HTTP 状态码
+  // enable http state
   enableHttpCode: false,
 
-  // 是否返回 rpc 错误信息
+  // enable rpc error message
   useRpcErrorMessage: true,
 
-  // 是否返回错误详情
+  // enable return rpc error message
   showMessageDetail: true,
 
   /* Customize your error fn. （Optional） */
@@ -141,16 +141,16 @@ config.error = {
 ### BodyParser 配置
 
 <Callout type="default">
-  BodyParser 配置需要安装 `@yunflyjs/yunfly-plugin-body-parser` 插件。[插件使用文档](./body-parser.md)
+  BodyParser 插件已内置, 开启即可使用。[插件使用文档](./body-parser.md)
 </Callout>
 
 ```ts filename="src/config/config.default.ts"
 // body参数配置
 config.bodyParser = {
-  jsonLimit: '1mb',
-  formLimit: '1mb',
+  jsonLimit: '5mb',
+  formLimit: '5mb',
   queryString: {
-    parameterLimit: 1 * 1024 * 1024,
+    parameterLimit: 5 * 1024 * 1024,
   },
 };
 ```
@@ -182,11 +182,15 @@ config.currentContext = {
 
 ### Socket 配置
 
+<Callout type="default">
+  Socket 配置需要安装 `@yunflyjs/yunfly-plugin-socket` 插件。[插件使用文档](../technology/socket.md)
+</Callout>
+
 ```ts filename="src/config/config.default.ts"
 // socket
 config.socket = {
   enable: false,
   type: 'worker', // 可选值 worker: 随机选择一个worker执行， all: 所有worker都执行, 默认为worker
-  path: '/',
+  path: '/socket.io'
 };
 ```
