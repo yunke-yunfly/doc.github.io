@@ -1,6 +1,6 @@
 # @yunke/yunfly-plugin-v8-profiler
 
-- 实时获取 `cpuprofile` 插件
+- 实时获取 `cpuprofile` 插件, 用于性能瓶颈分析。
 
 > 1. 实时在线生成 cpuprofile，支持10s, 30s, 1m, 2m, 5m 数据
 > 2. 支持界面查看生成的 cpuprofile 数据列表
