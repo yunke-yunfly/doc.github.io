@@ -1,6 +1,7 @@
 {
   "body-parser": "body-parser",
   "error": "error",
+  "response": "response",
   "current-context": "current-context",
   "apm": "apm",
   "jwt": "jwt",
