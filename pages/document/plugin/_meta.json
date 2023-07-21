@@ -5,6 +5,7 @@
   "current-context": "current-context",
   "apm": "apm",
   "jwt": "jwt",
+  "apollo": "apollo",
   "secruity": "secruity",
   "redis": "redis",
   "prisma": "prisma",
