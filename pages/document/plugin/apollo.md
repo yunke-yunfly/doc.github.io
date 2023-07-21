@@ -60,3 +60,56 @@ export interface ApolloConfig {
 | serviceName | `string` | 否 | `packageJson.name` | 默认取项目下 package.json 中的name字段 |
 
 
+## api
+
+插件只暴露一个 api `getApolloConfig`
+
+- getApolloConfig
+
+获得某个应用的所有 apollo 配置
+
+```ts
+import { getApolloConfig } from '@yunflyjs/yunfly-plugin-apollo';
+
+console.log('getApolloConfig',getApolloConfig);
+```
+
+- 在 controller 中获取 apolloConfig
+
+```ts
+import { Controller, Get } from '@yunflyjs/yunfly';
+import { getApolloConfig } from '@yunflyjs/yunfly-plugin-apollo';
+ 
+@Controller()
+export class ExampleController {
+  @Get('/users')
+  getApolloConfig() {
+    return getApolloConfig();
+  }
+}
+```
+
+## 环境变量
+
+### process.env.APOLLO_META_SERVER_URL
+
+axios 请求 apollo 配置的 url host 地址，需要以 http:// 或 https:// 开头。
+
+- 优先级：
+
+`config.apollo.serviceUrl` > `process.env.APOLLO_META_SERVER_URL`
+
+### process.env.APOLLO_ACCESSKEY_SECRET
+
+apollo 秘钥, 若 apollo 管理端开启了秘钥时，需要传递此参数
+
+- 优先级：
+
+`config.apollo.serviceUrl` > `process.env.APOLLO_ACCESSKEY_SECRET`
+
+## 其他说明
+
+1. 内置apollo热更新能力，使用http长轮询进行热更新，长轮询时间间隔为1分钟
+2. 热更新若失败会重试5次
+
+
