@@ -105,7 +105,7 @@ apollo 秘钥, 若 apollo 管理端开启了秘钥时，需要传递此参数
 
 - 优先级：
 
-`config.apollo.serviceUrl` > `process.env.APOLLO_ACCESSKEY_SECRET`
+`config.apollo.secret` > `process.env.APOLLO_ACCESSKEY_SECRET`
 
 ## 其他说明
 
