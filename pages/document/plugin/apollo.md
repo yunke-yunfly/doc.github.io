@@ -66,7 +66,7 @@ export interface ApolloConfig {
 
 - getApolloConfig
 
-获得某个应用的所有 apollo 配置
+api 使用
 
 ```ts
 import { getApolloConfig } from '@yunflyjs/yunfly-plugin-apollo';
@@ -93,7 +93,7 @@ export class ExampleController {
 
 ### process.env.APOLLO_META_SERVER_URL
 
-axios 请求 apollo 配置的 url host 地址，需要以 http:// 或 https:// 开头。
+axios 请求 apollo 配置的 url host 地址，需要以 `http://` 或 `https://` 开头。
 
 - 优先级：
 
