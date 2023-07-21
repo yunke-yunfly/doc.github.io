@@ -11,5 +11,7 @@
   "prisma": "prisma",
   "rate-limiter": "rate-limiter",
   "memory-check": "memory-check",
-  "cpuprofile": "cpuprofile"
+  "cpuprofile": "cpuprofile",
+  "etcd": "etcd",
+  "alinode": "alinode"
 }
