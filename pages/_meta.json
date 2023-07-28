@@ -25,5 +25,11 @@
     "theme": {
       "toc": true
     }
+  },
+  "codesandbox": {
+    "title": "sandbox在线体验",
+    "type": "page",
+    "href": "https://codesandbox.io/p/sandbox/elated-frog-rt4w4v?file=%2Fsrc%2Fcontroller%2FHomeController.ts%3A7%2C25",
+    "newWindow": true
   }
 }
