@@ -165,9 +165,25 @@ logger.prefix('yunfly').onlySign().info('控制台不会输出有前缀的日志
 
 ### logFilter
 
-日志信息过滤函数。
+日志信息过滤函数。有两种方式实现日志过滤能力
 
-- 通过链式调用配置日志过滤器
+- 1. 通过 config.logFilter 过滤日志内容
+
+例如过滤 password 值信息
+
+```ts filename="src/config/config.default.ts"
+// 日志过滤配置
+config.logFilter = (logType?: any, ...optionalParams: any[]) => // eslint-disable-line
+    optionalParams.map((item: any) => {
+        if (typeof item === 'string') {
+            // 过滤密码等敏感字符
+            return item.replace(/(password.*?"?:)(.*?)([,}])/g, (target, $1, $2, $3) => `${$1}"******"${$3}`);
+        }
+        return item;
+    });
+```
+
+- 2. 通过链式调用配置日志过滤器
 
 ```ts
 import { logger } from '@yunflyjs/yunfly';
@@ -176,7 +192,7 @@ const logFilter = (logType?: any, ...optionalParams: any[]) =>
     optionalParams.map((item: any) => {
     if (typeof item === 'string') {
         // 过滤密码等敏感字符
-        return item.replace(/("password\\?":\\?")([^\\?"]+)(\\?")/g, (target, $1, $2, $3) => `${$1}${new Array($2.length).join('*')}${$3}`);
+        return item.replace(/(password.*?"?:)(.*?)([,}])/g, (target, $1, $2, $3) => `${$1}"******"${$3}`);
     }
     return item;
 });
@@ -193,7 +209,7 @@ const logFilter = (logType?: any, ...optionalParams: any[]) =>
     optionalParams.map((item: any) => {
     if (typeof item === 'string') {
         // 过滤密码等敏感字符
-        return item.replace(/("password\\?":\\?")([^\\?"]+)(\\?")/g, (target, $1, $2, $3) => `${$1}${new Array($2.length).join('*')}${$3}`);
+        return item.replace(/(password.*?"?:)(.*?)([,}])/g, (target, $1, $2, $3) => `${$1}"******"${$3}`);
     }
     return item;
 });

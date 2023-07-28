@@ -1,0 +1,206 @@
+# etcd
+
+import { Callout } from 'nextra-theme-docs'
+
+yunfly 框架 etcd 插件
+
+## 使用
+
+1. 安装依赖
+
+```bash
+yarn add @yunflyjs/yunfly-plugin-etcd
+```
+
+2. 申明插件 **config/config.plugin.ts** 
+
+```ts
+/**
+ * yunfly plugin
+ */
+const plugins: {[key:string]: string}[] = [
+  {
+    name: 'etcd',
+    package: '@yunflyjs/yunfly-plugin-etcd'
+  }
+];
+// 
+export default plugins;
+```
+
+3. 启用插件 **config/config.default.ts** 
+
+```js
+config.etcd = {
+  enable: true,
+  url: '127.0.0.1:4001',    // etcd 服务地址
+  // refresh: false,        // 定时探活主机列表
+  // timeout: 60 * 1000,    // 统一超时时间
+}
+```
+
+- etcd 集群模式下, 可以配置多个host, 以逗号分割
+
+```js
+config.etcd = {
+  url: '127.0.0.1:4001, 127.0.0.1:4002, 127.0.0.1:4003', // etcd server urls 
+}
+```
+
+- url 字段也可以通过环境变量传入（跟config.etcd.url等效）
+
+```ts
+// set env
+process.env.ETCDV3_SERVER_URLS = '127.0.0.1:4001'; // 等效于 config.etcd.url
+// cluster
+process.env.ETCDV3_SERVER_URLS = '127.0.0.1:4001, 127.0.0.1:4002, 127.0.0.1:4003';
+
+// etcd config
+config.etcd = {
+  enable: true,
+  // refresh: false,        // refresh the interval host list automatically
+  // timeout: 60 * 1000,    // default timeout for ops
+}
+```
+
+## API
+
+```ts
+import { etcd } from '@yunflyjs/yunfly-plugin-etcd';
+```
+
+### etcd.getAllConfig
+
+一次性获得所有 etcd 配置
+
+```ts
+import { etcd } from '@yunflyjs/yunfly-plugin-etcd';
+
+const allConfig = await etcd.getAllConfig();
+```
+
+### etcd.get(key, [opts])
+
+获取单个key的值
+
+- option
+
+```ts
+{
+  "json": boolean; // 若返回的值为json字符串, 当前参数可以自动格式化
+}
+```
+
+- example
+
+```ts
+// async/await
+const result = await etcd.get('hello');
+
+// use promise
+etcd.get('hello').then( data => console.log('ge hello value',data));
+
+// example result
+'{"name": "zhangsan" ,"age" : 25 }'
+```
+
+- 返回json字符串时自动格式化
+
+```ts
+// async/await
+const result = await etcd.get('hello',{ json: true });
+
+// example result
+{
+  name: "zhangsan",
+  age: 25
+}
+```
+
+### etcd.set(key, value, [opts])
+
+设置某个key的值
+
+- option
+
+```ts
+{
+  "json": boolean;
+}
+```
+
+- example
+
+```ts
+// async/await
+// 设置一个json字符串
+const result = await etcd.set('hello','{"name": "zhangsan" ,"age" : 25 }');
+```
+
+- 设置一个json对象
+
+```ts
+// async/await
+const json = {"name": "zhangsan" ,"age" : 25 }
+const result = await etcd.set('hello', json, { json: true });
+```
+
+### etcd.update(key, value, [opts])
+
+设置一个已存在的key, 等效于 `set(key, value, {prevExists: true})`
+
+### etcd.del(key, [opts])
+
+删除一个key
+
+```ts
+const result = await etcd.del('hello');
+```
+
+### etcd.wait(key, [cb])
+
+监听某个key值的变化, 当某个key被改动时，会触发 callback 函数。
+第三个参数next，该参数作用是等待下一次更改。
+
+<Callout type="default">
+  若不执行 `next`, 则只会监听一次, 若要多次监听, 则需要在 `onchange` 函数中手动调用 `next`。
+</Callout>
+
+```ts
+etcd.wait('hello', function onchange (err: any, result: any, next: any) {
+  console.log('change!', result);
+  next(onchange); // next will set waitIndex so we do not miss events
+});
+```
+
+### etcd.mkdir(key, [cb])
+
+创建一个目录. 等价于 `set(key, null, {dir: true})`
+
+### etcd.rmdir(key, [cb])
+
+删除一个目录. 等价于 `del(key, {dir: true})`
+
+## More Apis
+
+- 跟多api请参考`@npmcorp/etcdjs`包: [@npmcorp/etcdjs](https://www.npmjs.com/package/@npmcorp/etcdjs)
+
+### use @npmcorp/etcdjs apis
+
+- example
+
+```ts
+etcd.store.destroy();
+etcd.store.push(key, value, [opts], [cb])
+etcd.store.compareAndSwap(key, value, prevValue, [opts], [cb])
+......
+```
+
+
+
+
+
+
+
+
+

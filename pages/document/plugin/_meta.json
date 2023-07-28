@@ -5,10 +5,13 @@
   "current-context": "current-context",
   "apm": "apm",
   "jwt": "jwt",
+  "apollo": "apollo",
   "secruity": "secruity",
   "redis": "redis",
   "prisma": "prisma",
   "rate-limiter": "rate-limiter",
   "memory-check": "memory-check",
-  "cpuprofile": "cpuprofile"
+  "cpuprofile": "cpuprofile",
+  "etcd": "etcd",
+  "alinode": "alinode"
 }
