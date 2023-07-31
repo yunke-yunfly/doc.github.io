@@ -1,0 +1,162 @@
+# alinode
+import { Callout } from 'nextra-theme-docs'
+## 介绍
+
+- @yunlfyjs/yunfly-plugin-alinode: alinode 性能分析插件
+- alinode管理平台地址： [https://www.aliyun.com/product/nodejs](https://www.aliyun.com/product/nodejs)
+
+## 产品概述
+
+Node.js 性能平台（Node.js Performance Platform）是面向所有 Node.js 应用提供 性能监控、安全提醒、故障排查、性能优化 等服务的整体性解决方案，尤其适用于中大型 Node.js 应用。
+
+Node.js 性能平台凭借对 Node.js 内核深入的理解，提供完善的工具链和服务，协助客户主动、快速发现和定位线上问题。
+
+## 应用场景
+
+Node.js 提供的精确到虚拟机级别的深度监控，能够如实的反应应用运行状态，通过配置报警规则，用户可以在发现系统出现故障（内存泄露或者 CPU 热点等）趋势时，通过诊断接口迅速定位故障点。
+
+Node.js 性能平台特别适合业务发展迅速、应用发布频繁、流量上升明显的 Node.js 应用。
+
+## 插件使用
+
+1. Docker 容器下使用 alinode 镜像
+
+要使用 alnode 的前提是要使用它提供的 node.js 版本，此处这里提供了 alinode@v12,v14,v16 的基础镜像
+
+<Callout type="default">
+  此插件需要配合 alnode 才能生效,使用官方node是不生效的!
+</Callout>
+
+- alinode 镜像列表
+
+```shell
+# v16
+FROM wangweianger/alinode:16.15.0
+
+# v14
+FROM wangweianger/alinode:14.19.2
+
+# v12
+FROM wangweianger/alinode:12.22.12
+```
+
+2. 安装依赖
+
+```js
+yarn add @yunflyjs/yunfly-plugin-alinode
+```
+
+3. **config/config.plugin.ts** 文件中申明插件
+
+```ts
+/**
+ * yunfly plugin
+ */
+const plugins: {[key:string]: string}[] = [
+  {
+    name: 'alinode',
+    package: '@yunflyjs/yunfly-plugin-alinode',
+    lifeHook: 'beforeStart'
+  }
+];
+// 
+export default plugins;
+```
+
+3. **config/config.default.ts** 文件中开启插件
+
+```js
+config.alinode = {
+  enable: true,
+  appid: 'xxxxx',
+  secret: 'xxxxxx',
+}
+```
+
+<Callout type="default">
+  此处的 `appid`、`secret` 需要去 alinode 平台申请， 申请地址：[https://www.aliyun.com/product/nodejs](https://www.aliyun.com/product/nodejs)
+</Callout>
+
+
+## Api
+
+插件提供两个api
+
+### killAgenthub
+
+关闭已存在的 agenthub 进程，停止数据收集
+
+```ts
+import { killAgenthub } from '@yunflyjs/yunfly-plugin-alinode';
+
+// 关闭数据收集
+killAgenthub();
+```
+
+### startAgenthub
+
+开启 agenthub 进程, 开始收集数据。
+
+```ts
+import { startAgenthub } from '@yunflyjs/yunfly-plugin-alinode';
+
+// 开始数据收集
+startAgenthub();
+```
+
+## alinode Docker
+
+- 提供了 alinode 镜像列表
+
+```shell
+# v16
+FROM wangweianger/alinode:16.15.0
+
+# v14
+FROM wangweianger/alinode:14.19.2
+
+# v12
+FROM wangweianger/alinode:12.22.12
+```
+
+- 自己打镜像，镜像代码案例
+
+```shell
+FROM python:3.6
+
+# 安装alinode@16.15.0
+ENV ALINODE_VERSION=7.6.0 \ 
+    ARCH=x64 \
+    ENABLE_NODE_LOG=YES \
+    NODE_LOG_DIR=/tmp \
+    HOME=/root \
+    TZ=Asia/Shanghai
+
+RUN curl -fsSLO --compressed "https://npm.taobao.org/mirrors/alinode/v$ALINODE_VERSION/alinode-v$ALINODE_VERSION-linux-$ARCH.tar.gz" \
+    && curl -fsSLO --compressed "https://npm.taobao.org/mirrors/alinode/v$ALINODE_VERSION/SHASUMS256.txt" \
+    && grep " alinode-v$ALINODE_VERSION-linux-$ARCH.tar.gz\$" SHASUMS256.txt | sha256sum -c - \
+    && tar -zxf "alinode-v$ALINODE_VERSION-linux-$ARCH.tar.gz" -C /usr/local --strip-components=1 --no-same-owner \
+    && rm "alinode-v$ALINODE_VERSION-linux-$ARCH.tar.gz" SHASUMS256.txt \
+    && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
+    && ENABLE_NODE_LOG=NO npm install -g @alicloud/agenthub --registry https://registry.npmmirror.com
+
+RUN npm config set registry https://registry.npmmirror.com \
+    && npm install -g yarn
+```
+
+> 以上是 alinode Docker 案例，只需要更改 `ALINODE_VERSION` 的版本号即可，具体版本号请参考：[Node.js性能平台运行时版本和官方对应列表](https://help.aliyun.com/document_detail/60811.html?spm=a2c4g.60322.0.0.37792bebMZCTkC)
+
+
+## alinode 能做什么
+
+- 内存泄漏分析
+- 框架性能分析
+- 代码性能瓶颈
+- GC垃圾回收分析
+- 监控告警
+- 其他能力- 
+
+- 相关文献 [Node.js 应用线上/线下故障、压测问题和性能调优指南手册](https://github.com/aliyun-node/Node.js-Troubleshooting-Guide)
+
+
+

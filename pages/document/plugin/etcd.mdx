@@ -21,7 +21,8 @@ yarn add @yunflyjs/yunfly-plugin-etcd
 const plugins: {[key:string]: string}[] = [
   {
     name: 'etcd',
-    package: '@yunflyjs/yunfly-plugin-etcd'
+    package: '@yunflyjs/yunfly-plugin-etcd',
+    lifeHook: 'beforeStart'
   }
 ];
 // 
